@@ -99,8 +99,27 @@ export class BlockContentView extends BasesView implements HoverParent {
 						"block-content-block markdown-preview-view markdown-rendered"
 					);
 
-					blockEl.onClickEvent((evt) => {
+					blockEl.addEventListener("click", (evt) => {
 						if (evt.button !== 0 && evt.button !== 1) return;
+
+						const target = evt.target as HTMLElement;
+						const tagName = target.tagName?.toLowerCase() || "";
+
+						if (
+							tagName === "a" ||
+							tagName === "input" ||
+							tagName === "button" ||
+							tagName === "textarea" ||
+							tagName === "select" ||
+							target.isContentEditable ||
+							target.hasAttribute("contenteditable") ||
+							target.closest("a") ||
+							target.closest("button") ||
+							target.closest("input") ||
+							target.closest("svg")
+						) {
+							return;
+						}
 						evt.preventDefault();
 						const modEvent = Keymap.isModEvent(evt);
 						void app.workspace.openLinkText(
