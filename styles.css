@@ -1,8 +1,55 @@
-/*
+.block-content-view-container {
+	padding: 0.5rem;
+	user-select: text;
+}
 
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
+.block-content-group {
+	margin-bottom: 1.5rem;
+}
 
-If your plugin does not need CSS, delete this file.
+.block-content-group-header {
+	font-weight: 600;
+	font-size: 1.1em;
+	margin-bottom: 0.75rem;
+	padding-bottom: 0.25rem;
+	border-bottom: 1px solid var(--background-modifier-border);
+}
 
-*/
+.block-content-file {
+	margin-bottom: 1rem;
+}
+
+.block-content-file-link {
+	font-weight: 600;
+	color: var(--link-color);
+	text-decoration: none;
+	cursor: pointer;
+	margin-bottom: 0.5rem;
+	display: block;
+}
+
+.block-content-file-link:hover {
+	text-decoration: underline;
+}
+
+.block-content-blocks {
+	margin-left: 0.5rem;
+}
+
+.block-content-block {
+	margin-bottom: 0.5rem;
+	padding: 0.5rem;
+	border-left: 2px solid var(--background-modifier-border);
+	padding-left: 0.75rem;
+	user-select: text;
+	cursor: pointer;
+	transition: background-color 0.1s ease;
+}
+
+.block-content-block:hover {
+	background-color: var(--background-modifier-hover);
+}
+
+.block-content-block .markdown-preview-view {
+	padding: 0;
+}
