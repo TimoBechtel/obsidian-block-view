@@ -99,6 +99,7 @@ export class BlockContentView extends BasesView implements HoverParent {
 						"block-content-block markdown-preview-view markdown-rendered"
 					);
 
+					// we make blocks clickable, but prevent clicks on links and other elements inside the block
 					blockEl.addEventListener("click", (evt) => {
 						if (evt.button !== 0 && evt.button !== 1) return;
 
@@ -137,6 +138,9 @@ export class BlockContentView extends BasesView implements HoverParent {
 						file.path,
 						this
 					);
+
+					this.setupInternalLinkHandlers(blockEl, file.path);
+					this.setupTagHandlers(blockEl);
 				}
 			}
 
@@ -144,6 +148,82 @@ export class BlockContentView extends BasesView implements HoverParent {
 				groupEl.remove();
 			}
 		}
+	}
+
+	/**
+	 * Custom view does not automatically add click handlers, so we need to add them manually.
+	 */
+	private setupInternalLinkHandlers(
+		containerEl: HTMLElement,
+		sourcePath: string
+	) {
+		containerEl.querySelectorAll("a.internal-link").forEach((linkEl) => {
+			linkEl.addEventListener("click", (evt: MouseEvent) => {
+				evt.preventDefault();
+				evt.stopPropagation();
+				const href =
+					linkEl.getAttribute("data-href") ||
+					linkEl.getAttribute("href");
+				if (href) {
+					const modEvent = Keymap.isModEvent(evt);
+					void this.app.workspace.openLinkText(
+						href,
+						sourcePath,
+						modEvent
+					);
+				}
+			});
+
+			linkEl.addEventListener("mouseover", (evt: MouseEvent) => {
+				const href =
+					linkEl.getAttribute("data-href") ||
+					linkEl.getAttribute("href");
+				if (href) {
+					this.app.workspace.trigger("hover-link", {
+						event: evt,
+						source: "block-content-view",
+						hoverParent: this,
+						targetEl: linkEl,
+						linktext: href,
+						sourcePath: sourcePath,
+					});
+				}
+			});
+		});
+	}
+
+	/**
+	 * Sets up handlers to open the search view when a tag is clicked.
+	 */
+	private setupTagHandlers(containerEl: HTMLElement) {
+		containerEl.querySelectorAll("a.tag").forEach((tagEl) => {
+			tagEl.addEventListener("click", (evt: MouseEvent) => {
+				evt.preventDefault();
+				evt.stopPropagation();
+				const tag = tagEl.getAttribute("href");
+				if (tag) {
+					const searchLeaf =
+						this.app.workspace.getLeavesOfType("search")[0];
+					if (searchLeaf) {
+						void this.app.workspace.revealLeaf(searchLeaf);
+						const view = searchLeaf.view;
+
+						// using non-public api here, so check availability first
+						const isSearchView = (
+							view: unknown
+						): view is { setQuery: (query: string) => void } =>
+							typeof view === "object" &&
+							view !== null &&
+							"setQuery" in view &&
+							typeof view.setQuery === "function";
+
+						if (isSearchView(view)) {
+							view.setQuery(`tag:${tag}`);
+						}
+					}
+				}
+			});
+		});
 	}
 
 	public onDataUpdated() {
