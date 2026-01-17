@@ -195,9 +195,7 @@ export class BlockView extends BasesView implements HoverParent {
 					const searchLeaf =
 						this.app.workspace.getLeavesOfType("search")[0];
 					if (searchLeaf) {
-						void this.app.workspace.revealLeaf(searchLeaf);
 						const view = searchLeaf.view;
-
 						// using non-public api here, so check availability first
 						const isSearchView = (
 							view: unknown
@@ -210,6 +208,10 @@ export class BlockView extends BasesView implements HoverParent {
 						if (isSearchView(view)) {
 							view.setQuery(`tag:${tag}`);
 						}
+						
+						
+						this.app.workspace.setActiveLeaf(searchLeaf, { focus: true });
+
 					}
 				}
 			});
