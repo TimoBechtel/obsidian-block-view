@@ -38,7 +38,7 @@ export class BlockView extends BasesView implements HoverParent {
 		const matcher = new TagMatcher(tagFilter);
 
 		for (const group of this.data.groupedData) {
-			const groupEl = this.containerEl.createDiv("block-content-group");
+			const groupEl = this.containerEl.createDiv("block-view-group");
 			let hasContent = false;
 
 			for (const entry of group.entries) {
@@ -58,7 +58,7 @@ export class BlockView extends BasesView implements HoverParent {
 					hasContent = true;
 					if (group.key !== undefined && group.key !== null) {
 						const groupHeaderEl = groupEl.createDiv(
-							"block-content-group-header"
+							"block-view-group-header"
 						);
 						group.key.renderTo(groupHeaderEl, {
 							hoverPopover: this.hoverPopover,
@@ -66,24 +66,24 @@ export class BlockView extends BasesView implements HoverParent {
 					}
 				}
 
-			const fileEl = groupEl.createDiv("block-content-file");
+			const fileEl = groupEl.createDiv("block-view-file");
 
 			if (showFileNames) {
 				fileEl.createEl("a", {
 					text: file.name,
-					cls: "block-content-file-link internal-link",
+					cls: "block-view-file-link internal-link",
 					href: file.path,
 				});
 			}
 
 			this.setupInternalLinkHandlers(fileEl, file.path);
 
-			const blocksEl = fileEl.createDiv("block-content-blocks");
+			const blocksEl = fileEl.createDiv("block-view-blocks");
 
 			for (const block of blocks) {
 					// markdown-preview-view markdown-rendered - are the internal obsidian classes so that it looks like normal markdown
 					const blockEl = blocksEl.createDiv(
-						"block-content-block markdown-preview-view markdown-rendered"
+						"block-view-block markdown-preview-view markdown-rendered"
 					);
 
 					// we make blocks clickable, but prevent clicks on links and other elements inside the block
