@@ -14,7 +14,7 @@ export default class MyPlugin extends Plugin {
 			options: () => [
 				{
 					type: "multitext",
-					displayName: "Tag filters",
+					displayName: "Include tags",
 					key: "tagFilter",
 					default: [],
 				},
@@ -24,15 +24,15 @@ export default class MyPlugin extends Plugin {
 					items: [
 						{
 							type: "toggle",
-							displayName: "Include all file types",
-							key: "showAllFiles",
-							default: false,
-						},
-						{
-							type: "toggle",
 							displayName: "Show file names",
 							key: "showFileNames",
 							default: true,
+						},
+						{
+							type: "toggle",
+							displayName: "Include other file types than markdown",
+							key: "showAllFiles",
+							default: false,
 						},
 					],
 				},
