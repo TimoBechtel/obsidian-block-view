@@ -1,0 +1,9 @@
+{
+	"[markdown]": {
+		// prevent md test file from being formatted
+		"editor.formatOnSave": false,
+		"editor.codeActionsOnSave": {
+			"source.fixAll.markdownlint": "never"
+		}
+	},
+}

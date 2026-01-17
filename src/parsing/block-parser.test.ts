@@ -100,4 +100,18 @@ describe("extractBlocks", () => {
 		expect(paragraphBlock?.startLine).toBe(4);
 		expect(paragraphBlock?.endLine).toBe(5);
 	});
+
+	test("extracts blocks that start with a tag", () => {
+		const matcher = new TagMatcher(["#log"]);
+		const blocks = extractBlocks(exampleNote, matcher);
+
+		const tagStartBlock = blocks.find((block) =>
+			block.content.includes("#log this paragraph starts with a tag")
+		);
+		expect(tagStartBlock).toBeDefined();
+		expect(tagStartBlock?.content).toContain(
+			"#log this paragraph starts with a tag"
+		);
+		expect(tagStartBlock?.content).toContain("And continues here.");
+	});
 });

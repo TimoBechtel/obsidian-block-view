@@ -5,6 +5,9 @@ This is a paragraph without any tag.
 This paragraph has a #log tag in it.
 It continues on this line.
 
+#log this paragraph starts with a tag.
+And continues here.
+
 ## A heading with #log
 
 Content under the heading.

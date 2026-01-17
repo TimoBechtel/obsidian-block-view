@@ -80,7 +80,7 @@ export function extractBlocks(
 					break;
 				}
 			}
-		} else if (line.startsWith("#")) {
+		} else if (line.startsWith("#") && getHeadingLevel(line) > 0) {
 			const headingLevel = getHeadingLevel(line);
 			endLine = i;
 
@@ -89,11 +89,9 @@ export function extractBlocks(
 				if (nextLine === undefined) {
 					break;
 				}
-				if (nextLine.startsWith("#")) {
-					const nextLevel = getHeadingLevel(nextLine);
-					if (nextLevel <= headingLevel) {
-						break;
-					}
+				const nextLevel = getHeadingLevel(nextLine);
+				if (nextLevel > 0 && nextLevel <= headingLevel) {
+					break;
 				}
 				endLine = j;
 			}
@@ -135,7 +133,7 @@ function isListLine(line: string): boolean {
 }
 
 function getHeadingLevel(line: string): number {
-	const match = line.match(/^(#+)/);
+	const match = line.match(/^(#+)\s/);
 	return match && match[1] ? match[1].length : 0;
 }
 
