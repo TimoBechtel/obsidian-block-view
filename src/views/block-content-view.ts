@@ -7,6 +7,7 @@ import {
 	type QueryController,
 } from "obsidian";
 import { extractBlocks } from "../parsing/block-parser";
+import { TagMatcher } from "../parsing/matchers";
 
 export class BlockContentView extends BasesView implements HoverParent {
 	readonly type = "block-content-view";
@@ -32,6 +33,7 @@ export class BlockContentView extends BasesView implements HoverParent {
 
 		const showAllFiles = this.config.get("showAllFiles") as boolean;
 		const showFileNames = this.config.get("showFileNames") as boolean;
+		const matcher = new TagMatcher(tagFilter);
 
 		for (const group of this.data.groupedData) {
 			const groupEl = this.containerEl.createDiv("block-content-group");
@@ -44,7 +46,7 @@ export class BlockContentView extends BasesView implements HoverParent {
 					continue;
 				}
 				const content = await app.vault.cachedRead(file);
-				const blocks = extractBlocks(content, tagFilter);
+				const blocks = extractBlocks(content, matcher);
 
 				if (blocks.length === 0) {
 					continue;

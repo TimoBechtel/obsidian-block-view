@@ -1,6 +1,8 @@
+import type { LineMatcher } from "./matchers";
+
 export function extractBlocks(
 	content: string,
-	tags: string[]
+	matcher: LineMatcher
 ): Array<{
 	content: string;
 	startLine: number;
@@ -21,9 +23,7 @@ export function extractBlocks(
 			continue;
 		}
 
-		const matchedTag = tags.find(tag => line.indexOf(tag) !== -1);
-
-		if (!matchedTag) {
+		if (!matcher.matches(line)) {
 			i++;
 			continue;
 		}

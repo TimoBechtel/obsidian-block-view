@@ -1,0 +1,21 @@
+---
+alwaysApply: true
+---
+
+This repo uses Bun for package management and testing. Make sure to always use Bun commands and not npm commands.
+
+After making changes, always run `bun run build` and then `bun test` to make sure the changes work.
+
+e.g.
+
+Testing:
+
+```bash
+bun test
+```
+
+Building:
+
+```bash
+bun run build
+```
