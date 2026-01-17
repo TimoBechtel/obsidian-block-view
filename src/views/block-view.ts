@@ -66,39 +66,21 @@ export class BlockView extends BasesView implements HoverParent {
 					}
 				}
 
-				const fileEl = groupEl.createDiv("block-content-file");
+			const fileEl = groupEl.createDiv("block-content-file");
 
-				if (showFileNames) {
-					const fileLinkEl = fileEl.createEl("a", {
-						text: file.name,
-						cls: "block-content-file-link",
-					});
+			if (showFileNames) {
+				fileEl.createEl("a", {
+					text: file.name,
+					cls: "block-content-file-link internal-link",
+					href: file.path,
+				});
+			}
 
-					fileLinkEl.onClickEvent((evt) => {
-						if (evt.button !== 0 && evt.button !== 1) return;
-						evt.preventDefault();
-						const modEvent = Keymap.isModEvent(evt);
-						void app.workspace.openLinkText(
-							file.path,
-							"",
-							modEvent
-						);
-					});
+			this.setupInternalLinkHandlers(fileEl, file.path);
 
-					fileLinkEl.addEventListener("mouseover", (evt) => {
-						app.workspace.trigger("hover-link", {
-							event: evt,
-							source: "bases",
-							hoverParent: this,
-							targetEl: fileLinkEl,
-							linktext: file.path,
-						});
-					});
-				}
+			const blocksEl = fileEl.createDiv("block-content-blocks");
 
-				const blocksEl = fileEl.createDiv("block-content-blocks");
-
-				for (const block of blocks) {
+			for (const block of blocks) {
 					// markdown-preview-view markdown-rendered - are the internal obsidian classes so that it looks like normal markdown
 					const blockEl = blocksEl.createDiv(
 						"block-content-block markdown-preview-view markdown-rendered"
@@ -164,8 +146,11 @@ export class BlockView extends BasesView implements HoverParent {
 	) {
 		containerEl.querySelectorAll("a.internal-link").forEach((linkEl) => {
 			linkEl.addEventListener("click", (evt: MouseEvent) => {
+
+				if (evt.button !== 0 && evt.button !== 1) return;
+
 				evt.preventDefault();
-				evt.stopPropagation();
+				// evt.stopPropagation();
 				const href =
 					linkEl.getAttribute("data-href") ||
 					linkEl.getAttribute("href");
@@ -186,7 +171,7 @@ export class BlockView extends BasesView implements HoverParent {
 				if (href) {
 					this.app.workspace.trigger("hover-link", {
 						event: evt,
-						source: BlockViewType,
+						source: 'bases', // uses 'bases' to respect page preview settings for bases
 						hoverParent: this,
 						targetEl: linkEl,
 						linktext: href,
