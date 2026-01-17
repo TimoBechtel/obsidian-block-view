@@ -7,7 +7,7 @@ console.log("=== Input ===");
 console.log(exampleNote);
 console.log("\n=== Extracted blocks for #log ===\n");
 
-const blocks = extractBlocks(exampleNote, "#log");
+const blocks = extractBlocks(exampleNote, ["#log"]);
 
 blocks.forEach((block, index) => {
 	console.log(

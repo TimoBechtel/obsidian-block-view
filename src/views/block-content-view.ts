@@ -22,15 +22,16 @@ export class BlockContentView extends BasesView implements HoverParent {
 	private async render() {
 		const { app } = this;
 
-		const tagFilter = this.config.get("tagFilter") as string;
-		if (!tagFilter) {
+		const tagFilter = this.config.get("tagFilter") as string[];
+
+		this.containerEl.empty();
+
+		if (!tagFilter || tagFilter.length === 0) {
 			return;
 		}
 
 		const showAllFiles = this.config.get("showAllFiles") as boolean;
 		const showFileNames = this.config.get("showFileNames") as boolean;
-
-		this.containerEl.empty();
 
 		for (const group of this.data.groupedData) {
 			const groupEl = this.containerEl.createDiv("block-content-group");

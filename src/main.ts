@@ -13,10 +13,10 @@ export default class MyPlugin extends Plugin {
 			},
 			options: () => [
 				{
-					type: "text",
-					displayName: "Tag filter",
+					type: "multitext",
+					displayName: "Tag filters",
 					key: "tagFilter",
-					default: "",
+					default: [],
 				},
 				{
 					type: "toggle",

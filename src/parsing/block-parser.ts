@@ -1,6 +1,6 @@
 export function extractBlocks(
 	content: string,
-	tag: string
+	tags: string[]
 ): Array<{
 	content: string;
 	startLine: number;
@@ -21,9 +21,9 @@ export function extractBlocks(
 			continue;
 		}
 
-		const tagIndex = line.indexOf(tag);
+		const matchedTag = tags.find(tag => line.indexOf(tag) !== -1);
 
-		if (tagIndex === -1) {
+		if (!matchedTag) {
 			i++;
 			continue;
 		}
