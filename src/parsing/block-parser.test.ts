@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 // eslint-disable-next-line import/no-nodejs-modules
 import { readFileSync } from "node:fs";
-import { extractBlocks } from "./block-parser";
+import { parseBlocks } from "./block-parser";
 import { TagMatcher } from "./matchers";
 
 const exampleNote = readFileSync("test/example-note.md", "utf-8");
@@ -9,7 +9,7 @@ const exampleNote = readFileSync("test/example-note.md", "utf-8");
 describe("extractBlocks", () => {
 	test("extracts paragraph blocks with tags", () => {
 		const matcher = new TagMatcher(["#log"]);
-		const blocks = extractBlocks(exampleNote, matcher);
+		const blocks = parseBlocks(exampleNote, matcher);
 
 		const paragraphBlock = blocks.find((block) =>
 			block.content.includes("This paragraph has a #log tag")
@@ -23,7 +23,7 @@ describe("extractBlocks", () => {
 
 	test("extracts heading blocks with tags", () => {
 		const matcher = new TagMatcher(["#log"]);
-		const blocks = extractBlocks(exampleNote, matcher);
+		const blocks = parseBlocks(exampleNote, matcher);
 
 		const headingBlock = blocks.find((block) =>
 			block.content.startsWith("## A heading with #log")
@@ -37,7 +37,7 @@ describe("extractBlocks", () => {
 
 	test("extracts list item blocks with tags", () => {
 		const matcher = new TagMatcher(["#log"]);
-		const blocks = extractBlocks(exampleNote, matcher);
+		const blocks = parseBlocks(exampleNote, matcher);
 
 		const listBlock = blocks.find((block) =>
 			block.content.includes("- List item with #log tag")
@@ -53,7 +53,7 @@ describe("extractBlocks", () => {
 
 	test("extracts numbered list blocks with tags", () => {
 		const matcher = new TagMatcher(["#log"]);
-		const blocks = extractBlocks(exampleNote, matcher);
+		const blocks = parseBlocks(exampleNote, matcher);
 
 		const numberedBlock = blocks.find((block) =>
 			block.content.includes("2. Numbered with #log")
@@ -67,7 +67,7 @@ describe("extractBlocks", () => {
 
 	test("extracts continuation paragraphs in list blocks", () => {
 		const matcher = new TagMatcher(["#log"]);
-		const blocks = extractBlocks(exampleNote, matcher);
+		const blocks = parseBlocks(exampleNote, matcher);
 
 		const continuationBlock = blocks.find((block) =>
 			block.content.includes("- Another #log item")
@@ -85,14 +85,14 @@ describe("extractBlocks", () => {
 
 	test("does not extract blocks without matching tags", () => {
 		const matcher = new TagMatcher(["#nonexistent"]);
-		const blocks = extractBlocks(exampleNote, matcher);
+		const blocks = parseBlocks(exampleNote, matcher);
 
 		expect(blocks.length).toBe(0);
 	});
 
 	test("returns correct line numbers", () => {
 		const matcher = new TagMatcher(["#log"]);
-		const blocks = extractBlocks(exampleNote, matcher);
+		const blocks = parseBlocks(exampleNote, matcher);
 
 		const paragraphBlock = blocks.find((block) =>
 			block.content.includes("This paragraph has a #log tag")
@@ -103,7 +103,7 @@ describe("extractBlocks", () => {
 
 	test("extracts blocks that start with a tag", () => {
 		const matcher = new TagMatcher(["#log"]);
-		const blocks = extractBlocks(exampleNote, matcher);
+		const blocks = parseBlocks(exampleNote, matcher);
 
 		const tagStartBlock = blocks.find((block) =>
 			block.content.includes("#log this paragraph starts with a tag")

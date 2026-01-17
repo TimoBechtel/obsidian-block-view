@@ -6,7 +6,7 @@ import {
 	type HoverPopover,
 	type QueryController,
 } from "obsidian";
-import { extractBlocks } from "../parsing/block-parser";
+import { parseBlocks } from "../parsing/block-parser";
 import { TagMatcher } from "../parsing/matchers";
 
 export class BlockContentView extends BasesView implements HoverParent {
@@ -46,7 +46,7 @@ export class BlockContentView extends BasesView implements HoverParent {
 					continue;
 				}
 				const content = await app.vault.cachedRead(file);
-				const blocks = extractBlocks(content, matcher);
+				const blocks = parseBlocks(content, matcher);
 
 				if (blocks.length === 0) {
 					continue;
