@@ -1,15 +1,13 @@
 import { Plugin } from "obsidian";
-import { BlockContentView } from "./views/block-content-view";
+import { BlockView, BlockViewType } from "./views/block-view";
 
-export const BlockContentViewType = "block-content-view";
-
-export default class MyPlugin extends Plugin {
+export default class BlockViewPlugin extends Plugin {
 	async onload() {
-		this.registerBasesView(BlockContentViewType, {
-			name: "Block Content",
+		this.registerBasesView(BlockViewType, {
+			name: "Blocks",
 			icon: "lucide-file-text",
 			factory: (controller, containerEl) => {
-				return new BlockContentView(controller, containerEl);
+				return new BlockView(controller, containerEl);
 			},
 			options: () => [
 				{

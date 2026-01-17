@@ -9,15 +9,17 @@ import {
 import { parseBlocks } from "../parsing/block-parser";
 import { TagMatcher } from "../parsing/matchers";
 
-export class BlockContentView extends BasesView implements HoverParent {
-	readonly type = "block-content-view";
+export const BlockViewType = "block-view" as const;
+
+export class BlockView extends BasesView implements HoverParent {
+	readonly type = BlockViewType;
 	private containerEl: HTMLElement;
 
 	hoverPopover: HoverPopover | null;
 
 	constructor(controller: QueryController, parentEl: HTMLElement) {
 		super(controller);
-		this.containerEl = parentEl.createDiv("block-content-view-container");
+		this.containerEl = parentEl.createDiv("block-view-container");
 	}
 
 	private async render() {
@@ -184,7 +186,7 @@ export class BlockContentView extends BasesView implements HoverParent {
 				if (href) {
 					this.app.workspace.trigger("hover-link", {
 						event: evt,
-						source: "block-content-view",
+						source: BlockViewType,
 						hoverParent: this,
 						targetEl: linkEl,
 						linktext: href,
