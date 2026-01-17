@@ -19,16 +19,22 @@ export default class MyPlugin extends Plugin {
 					default: [],
 				},
 				{
-					type: "toggle",
-					displayName: "Include all file types",
-					key: "showAllFiles",
-					default: false,
-				},
-				{
-					type: "toggle",
-					displayName: "Show file names",
-					key: "showFileNames",
-					default: true,
+					type: "group",
+					displayName: "Display options",
+					items: [
+						{
+							type: "toggle",
+							displayName: "Include all file types",
+							key: "showAllFiles",
+							default: false,
+						},
+						{
+							type: "toggle",
+							displayName: "Show file names",
+							key: "showFileNames",
+							default: true,
+						},
+					],
 				},
 			],
 		});
