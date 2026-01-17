@@ -9,8 +9,7 @@ export class TagMatcher implements LineMatcher {
 		this.regexes = tags.map((tag) => {
 			const normalized = tag.startsWith("#") ? tag : `#${tag}`;
 			const escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-			// pre-compile
-			return new RegExp(`${escaped}\\b`);
+			return new RegExp(`${escaped}\\b`, "i");
 		});
 	}
 

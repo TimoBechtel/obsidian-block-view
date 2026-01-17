@@ -42,10 +42,12 @@ describe("TagMatcher", () => {
 		expect(matcher.matches("This has #log")).toBe(false);
 	});
 
-	test("case sensitive matching", () => {
+	test("case insensitive matching", () => {
 		const matcher = new TagMatcher(["#Log"]);
 		expect(matcher.matches("This has #Log")).toBe(true);
-		expect(matcher.matches("This has #log")).toBe(false);
+		expect(matcher.matches("This has #log")).toBe(true);
+		expect(matcher.matches("This has #LOG")).toBe(true);
+		expect(matcher.matches("This has #LoG")).toBe(true);
 	});
 
 	test("escapes special regex characters", () => {
