@@ -41,6 +41,13 @@ export default class BlockViewPlugin extends Plugin {
 						},
 						{
 							type: "toggle",
+							displayName: "Show files without matches",
+							key: "showFilesWithoutMatches",
+							default: false,
+							shouldHide: (config) => !config.get("showFileNames"),
+						},
+						{
+							type: "toggle",
 							displayName: "Include other file types than markdown",
 							key: "showAllFiles",
 							default: false,

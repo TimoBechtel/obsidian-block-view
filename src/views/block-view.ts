@@ -40,6 +40,7 @@ export class BlockView extends BasesView implements HoverParent {
 
 		const showAllFiles = this.config.get("showAllFiles") as boolean;
 		const showFileNames = this.config.get("showFileNames") as boolean;
+		const showFilesWithoutMatches = this.config.get("showFilesWithoutMatches") as boolean;
 		const filterTableRows = this.config.get("filterTableRows") as boolean;
 
 		const matchers: LineMatcher[] = [
@@ -67,7 +68,7 @@ export class BlockView extends BasesView implements HoverParent {
 					filterTableRows,
 				});
 
-				if (blocks.length === 0) {
+				if (blocks.length === 0 && !showFilesWithoutMatches) {
 					continue;
 				}
 
@@ -95,6 +96,9 @@ export class BlockView extends BasesView implements HoverParent {
 
 				this.setupInternalLinkHandlers(fileEl, file.path);
 
+				if (blocks.length === 0) {
+					continue;
+				}
 				const blocksEl = fileEl.createDiv("block-view-blocks");
 
 				for (const block of blocks) {
