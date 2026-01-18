@@ -47,8 +47,7 @@ export class BlockView extends BasesView implements HoverParent {
 				if (!showAllFiles && file.extension !== "md") {
 					continue;
 				}
-				const content = await app.vault.cachedRead(file);
-				const blocks = parseBlocks(content, matcher);
+				const blocks = await parseBlocks(app, file, matcher);
 
 				if (blocks.length === 0) {
 					continue;

@@ -14,6 +14,7 @@ export class TagMatcher implements LineMatcher {
 	}
 
 	matches(line: string): boolean {
-		return this.regexes.some((regex) => regex.test(line));
+		const withoutInlineCode = line.replace(/`[^`]*`/g, "");
+		return this.regexes.some((regex) => regex.test(withoutInlineCode));
 	}
 }

@@ -1,3 +1,4 @@
+import type { App, SectionCache, TFile } from "obsidian";
 import type { LineMatcher } from "./matchers";
 
 type Block = {
@@ -6,71 +7,102 @@ type Block = {
 	endLine: number;
 };
 
-abstract class BlockParser {
-	abstract matches(line: string): boolean;
-	abstract findEnd(lines: string[], startIndex: number): number;
-
-	extract(lines: string[], startIndex: number): Block {
-		const endLine = this.findEnd(lines, startIndex);
-		const content = lines.slice(startIndex, endLine + 1).join("\n");
-		return {
-			content,
-			startLine: startIndex,
-			endLine,
-		};
-	}
+abstract class SectionBlockParser {
+	abstract matches(section: SectionCache): boolean;
+	abstract extract(
+		sections: SectionCache[],
+		startIndex: number,
+		lines: string[],
+		matcher: LineMatcher
+	): Block[] | null;
 }
 
-// TODO: how is the list block parser different from the paragraph block parser?
-class ListBlockParser extends BlockParser {
-	matches(line: string): boolean {
-		return this.isListLine(line);
+class ListBlockParser extends SectionBlockParser {
+	matches(section: SectionCache): boolean {
+		return section.type === "list";
 	}
 
-	findEnd(lines: string[], startIndex: number): number {
-		const startLine = lines[startIndex];
-		if (!startLine) return startIndex;
-		const baseIndent = this.getIndentLevel(startLine);
-		let endLine = startIndex;
+	extract(
+		sections: SectionCache[],
+		startIndex: number,
+		lines: string[],
+		matcher: LineMatcher
+	): Block[] | null {
+		const section = sections[startIndex];
+		if (!section) return null;
 
-		for (let j = startIndex + 1; j < lines.length; j++) {
-			const nextLine = lines[j];
-			if (!nextLine) {
-				break;
-			}
-			if (nextLine.trim() === "") {
-				const nextNonEmpty = this.findNextNonEmptyLine(lines, j + 1);
-				if (nextNonEmpty === -1) {
-					break;
-				}
-				const nonEmptyLine = lines[nextNonEmpty];
-				if (
-					!nonEmptyLine ||
-					this.getIndentLevel(nonEmptyLine) <= baseIndent
-				) {
-					break;
-				}
-				endLine = j;
+		const blocks: Block[] = [];
+		let i = section.position.start.line;
+
+		while (i <= section.position.end.line) {
+			const line = lines[i];
+			if (!line || line.trim() === "") {
+				i++;
 				continue;
 			}
 
-			const nextIndent = this.getIndentLevel(nextLine);
-			if (nextIndent <= baseIndent && this.isListLine(nextLine)) {
-				break;
+			if (!this.isListLine(line)) {
+				i++;
+				continue;
 			}
 
-			if (
-				nextIndent > baseIndent ||
-				nextLine.trim() === "" ||
-				!this.isListLine(nextLine)
-			) {
-				endLine = j;
-			} else {
-				break;
+			if (!matcher.matches(line)) {
+				i++;
+				continue;
 			}
+
+			const baseIndent = this.getIndentLevel(line);
+			let endLine = i;
+
+			for (let j = i + 1; j <= section.position.end.line; j++) {
+				const nextLine = lines[j];
+				if (!nextLine) break;
+
+				if (nextLine.trim() === "") {
+					const nextNonEmpty = this.findNextNonEmptyLine(
+						lines,
+						j + 1,
+						section.position.end.line
+					);
+					if (nextNonEmpty === -1) break;
+
+					const nonEmptyLine = lines[nextNonEmpty];
+					if (
+						!nonEmptyLine ||
+						this.getIndentLevel(nonEmptyLine) <= baseIndent
+					) {
+						break;
+					}
+					endLine = j;
+					continue;
+				}
+
+				const nextIndent = this.getIndentLevel(nextLine);
+				if (nextIndent <= baseIndent && this.isListLine(nextLine)) {
+					break;
+				}
+
+				if (
+					nextIndent > baseIndent ||
+					nextLine.trim() === "" ||
+					!this.isListLine(nextLine)
+				) {
+					endLine = j;
+				} else {
+					break;
+				}
+			}
+
+			blocks.push({
+				content: lines.slice(i, endLine + 1).join("\n"),
+				startLine: i,
+				endLine,
+			});
+
+			i = endLine + 1;
 		}
 
-		return endLine;
+		return blocks.length > 0 ? blocks : null;
 	}
 
 	private getIndentLevel(line: string): number {
@@ -86,8 +118,12 @@ class ListBlockParser extends BlockParser {
 		);
 	}
 
-	private findNextNonEmptyLine(lines: string[], start: number): number {
-		for (let i = start; i < lines.length; i++) {
+	private findNextNonEmptyLine(
+		lines: string[],
+		start: number,
+		maxLine: number
+	): number {
+		for (let i = start; i <= maxLine; i++) {
 			const line = lines[i];
 			if (line && line.trim() !== "") {
 				return i;
@@ -97,30 +133,48 @@ class ListBlockParser extends BlockParser {
 	}
 }
 
-class HeadingBlockParser extends BlockParser {
-	matches(line: string): boolean {
-		return line.startsWith("#") && this.getHeadingLevel(line) > 0;
+class HeadingBlockParser extends SectionBlockParser {
+	matches(section: SectionCache): boolean {
+		return section.type === "heading";
 	}
 
-	findEnd(lines: string[], startIndex: number): number {
-		const startLine = lines[startIndex];
-		if (!startLine) return startIndex;
-		const headingLevel = this.getHeadingLevel(startLine);
-		let endLine = startIndex;
+	extract(
+		sections: SectionCache[],
+		startIndex: number,
+		lines: string[],
+		matcher: LineMatcher
+	): Block[] | null {
+		const section = sections[startIndex];
+		if (!section) return null;
 
-		for (let j = startIndex + 1; j < lines.length; j++) {
-			const nextLine = lines[j];
-			if (nextLine === undefined) {
-				break;
+		const headingLine = lines[section.position.start.line];
+		if (!headingLine || !matcher.matches(headingLine)) return null;
+
+		const headingLevel = this.getHeadingLevel(headingLine);
+		let endLine = section.position.end.line;
+
+		for (let j = startIndex + 1; j < sections.length; j++) {
+			const nextSection = sections[j];
+			if (!nextSection) break;
+
+			if (nextSection.type === "heading") {
+				const nextHeadingLine = lines[nextSection.position.start.line];
+				const nextLevel = this.getHeadingLevel(nextHeadingLine ?? "");
+				if (nextLevel > 0 && nextLevel <= headingLevel) {
+					break;
+				}
 			}
-			const nextLevel = this.getHeadingLevel(nextLine);
-			if (nextLevel > 0 && nextLevel <= headingLevel) {
-				break;
-			}
-			endLine = j;
+
+			endLine = nextSection.position.end.line;
 		}
 
-		return endLine;
+		return [{
+			content: lines
+				.slice(section.position.start.line, endLine + 1)
+				.join("\n"),
+			startLine: section.position.start.line,
+			endLine,
+		}];
 	}
 
 	private getHeadingLevel(line: string): number {
@@ -129,61 +183,101 @@ class HeadingBlockParser extends BlockParser {
 	}
 }
 
-class ParagraphBlockParser extends BlockParser {
+class CodeBlockParser extends SectionBlockParser {
+	matches(section: SectionCache): boolean {
+		return section.type === "code";
+	}
+
+	extract(
+		sections: SectionCache[],
+		startIndex: number,
+		lines: string[],
+		matcher: LineMatcher
+	): Block[] | null {
+		const section = sections[startIndex];
+		if (!section) return null;
+
+		const fenceLine = lines[section.position.start.line];
+		if (!fenceLine || !matcher.matches(fenceLine)) return null;
+
+		return [{
+			content: lines
+				.slice(section.position.start.line, section.position.end.line + 1)
+				.join("\n"),
+			startLine: section.position.start.line,
+			endLine: section.position.end.line,
+		}];
+	}
+}
+
+class DefaultSectionParser extends SectionBlockParser {
 	matches(): boolean {
 		return true;
 	}
 
-	findEnd(lines: string[], startIndex: number): number {
-		let endLine = startIndex;
-		for (let j = startIndex + 1; j < lines.length; j++) {
-			const nextLine = lines[j];
-			if (!nextLine || nextLine.trim() === "") {
+	extract(
+		sections: SectionCache[],
+		startIndex: number,
+		lines: string[],
+		matcher: LineMatcher
+	): Block[] | null {
+		const section = sections[startIndex];
+		if (!section) return null;
+
+		let hasMatch = false;
+		for (
+			let i = section.position.start.line;
+			i <= section.position.end.line;
+			i++
+		) {
+			if (matcher.matches(lines[i] ?? "")) {
+				hasMatch = true;
 				break;
 			}
-			endLine = j;
 		}
-		return endLine;
+
+		if (!hasMatch) return null;
+
+		return [{
+			content: lines
+				.slice(section.position.start.line, section.position.end.line + 1)
+				.join("\n"),
+			startLine: section.position.start.line,
+			endLine: section.position.end.line,
+		}];
 	}
 }
 
-const blockParsers = [
-	new ListBlockParser(),
+const sectionParsers = [
 	new HeadingBlockParser(),
-	new ParagraphBlockParser(),
-
+	new CodeBlockParser(),
+	new ListBlockParser(),
+	new DefaultSectionParser(),
 ];
 
-export function parseBlocks(
-	content: string,
+export async function parseBlocks(
+	app: App,
+	file: TFile,
 	matcher: LineMatcher
-): Block[] {
+): Promise<Block[]> {
+	const metadata = app.metadataCache.getFileCache(file);
+	if (!metadata?.sections) return [];
+
+	const content = await app.vault.cachedRead(file);
 	const lines = content.split("\n");
 	const blocks: Block[] = [];
 
-	let i = 0;
-	while (i < lines.length) {
-		const line = lines[i];
-		if (!line || line.trim() === "") {
-			i++;
-			continue;
+	for (let i = 0; i < metadata.sections.length; i++) {
+		const section = metadata.sections[i];
+		if (!section || section.type === "yaml") continue;
+
+		const parser = sectionParsers.find((p) => p.matches(section));
+		if (!parser) continue;
+
+		const result = parser.extract(metadata.sections, i, lines, matcher);
+		if (result) {
+			blocks.push(...result);
 		}
-
-		if (!matcher.matches(line)) {
-			i++;
-			continue;
-		}
-
-		const parser = blockParsers.find((p) => p.matches(line));
-		if (!parser) {
-			i++;
-			continue;
-		}
-
-		const block = parser.extract(lines, i);
-		blocks.push(block);
-
-		i = block.endLine + 1;
 	}
 
 	return blocks;
