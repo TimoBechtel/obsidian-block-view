@@ -37,8 +37,8 @@
 }
 
 .block-view-block {
-	margin-bottom: 0.5rem;
-	padding: 0.5rem;
+	margin-bottom: 0.65rem;
+	padding: 0.3rem 0.5rem;
 	border-left: var(--border-width) solid var(--background-modifier-border);
 	padding-left: 0.75rem;
 	user-select: text;
@@ -50,8 +50,14 @@
 	background-color: var(--background-modifier-hover);
 }
 
-.block-view-block .markdown-preview-view {
-	padding: 0;
+/* remove margins from first and last child */
+.block-view-block > :first-child {
+	margin-top: 0 !important;
+	margin-block-start: 0 !important;
+}
+.block-view-block > :last-child {
+	margin-bottom: 0 !important;
+	margin-block-end: 0 !important;
 }
 
 .block-view-placeholder {
