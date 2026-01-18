@@ -41,6 +41,15 @@ export class BlockView extends BasesView implements HoverParent {
 		const hasBlockTypeFilters = filterTasks || filterQuotes || filterCodeBlocks;
 
 		if (!hasTagFilter && !hasRegexPattern && !hasBlockTypeFilters) {
+			const placeholderEl = this.containerEl.createDiv("block-view-placeholder");
+			placeholderEl.createEl("p", {
+				text: "No filters enabled",
+				cls: "block-view-placeholder-title",
+			});
+			placeholderEl.createEl("p", {
+				text: "Enable at least one filter in the view options",
+				cls: "block-view-placeholder-subtitle",
+			});
 			return;
 		}
 

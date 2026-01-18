@@ -53,3 +53,25 @@
 .block-view-block .markdown-preview-view {
 	padding: 0;
 }
+
+.block-view-placeholder {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 3rem 1rem;
+	text-align: center;
+	color: var(--text-muted);
+}
+
+.block-view-placeholder-title {
+	font-size: 1.2em;
+	font-weight: 500;
+	margin-bottom: 0.3rem;
+	color: var(--text-normal);
+}
+
+.block-view-placeholder-subtitle {
+	font-size: 0.9em;
+	margin: 0;
+}
