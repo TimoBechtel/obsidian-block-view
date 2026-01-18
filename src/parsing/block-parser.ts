@@ -257,6 +257,9 @@ export async function parseBlocks(
 	const metadata = app.metadataCache.getFileCache(file);
 	if (!metadata?.sections) return [];
 
+	// Log sections to update the test file:
+	// console.log('sections', metadata.sections);
+
 	const content = await app.vault.cachedRead(file);
 	const lines = content.split("\n");
 	const blocks: Block[] = [];

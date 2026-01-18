@@ -46,6 +46,7 @@ This should not be included.
 
 > Regular quote without tag
 
+> Following is a quote:
 > This is a quote with #log tag
 > Continuation of quote
 > Still part of the same quote
@@ -71,6 +72,7 @@ This should not be included.
 
 > [!warning]
 > Another callout with #log tag
+> And more content here
 
 ## Code Blocks
 

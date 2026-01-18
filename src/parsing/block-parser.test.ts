@@ -187,4 +187,44 @@ describe("extractBlocks", () => {
 		);
 		expect(inlineCodeParagraph).toBeUndefined();
 	});
+
+	test("extracts blockquotes with tags", async () => {
+		const matcher = new TagMatcher(["#log"]);
+		const mockApp = createMockApp(exampleNote, exampleSections);
+		const mockFile = {} as TFile;
+		const blocks = await parseBlocks(mockApp, mockFile, matcher);
+
+		const blockquote = blocks.find((block) =>
+			block.content.includes("> This is a quote with #log tag")
+		);
+		expect(blockquote).toBeDefined();
+		expect(blockquote?.content).not.toContain("> Regular quote without tag");
+		expect(blockquote?.content).toContain("> Following is a quote:");
+		expect(blockquote?.content).toContain("> This is a quote with #log tag");
+		expect(blockquote?.content).toContain("> Continuation of quote");
+		expect(blockquote?.content).toContain("> Still part of the same quote");
+		expect(blockquote?.content).not.toContain("> Another quote without tag");
+	});
+
+	test("extracts tables with tags", async () => {
+		const matcher = new TagMatcher(["#log"]);
+		const mockApp = createMockApp(exampleNote, exampleSections);
+		const mockFile = {} as TFile;
+		const blocks = await parseBlocks(mockApp, mockFile, matcher);
+
+		const tableWithTagInCell = blocks.find((block) =>
+			block.content.includes("| Data #log |")
+		);
+		expect(tableWithTagInCell).toBeDefined();
+		expect(tableWithTagInCell?.content).toContain("| Column 1  | Column 2 |");
+		expect(tableWithTagInCell?.content).toContain("| Data #log | More     |");
+
+		const tableWithTagInHeader = blocks.find((block) =>
+			block.content.includes("| Status #log |")
+		);
+		expect(tableWithTagInHeader).toBeDefined();
+		expect(tableWithTagInHeader?.content).toContain("| Name     | Status #log |");
+		expect(tableWithTagInHeader?.content).toContain("| Item 1   | Active      |");
+		expect(tableWithTagInHeader?.content).toContain("| Item 2   | Pending     |");
+	});
 });
