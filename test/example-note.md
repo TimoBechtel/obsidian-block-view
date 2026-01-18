@@ -16,6 +16,7 @@ More content here.
 ### Subheading
 
 This should be included too.
+And this is a #log sentence.
 
 ## Another heading
 

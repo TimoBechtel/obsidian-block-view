@@ -246,4 +246,24 @@ describe("extractBlocks", () => {
 		expect(tableBlock?.content).toContain("| Data      | More     |");
 		expect(tableBlock?.content).toContain("| Data #log | More     |");
 	});
+
+	test("does not extract duplicate blocks when heading matches and content inside also matches", async () => {
+		const matcher = new TagMatcher(["#log"]);
+		const mockApp = createMockApp(exampleNote, exampleSections);
+		const mockFile = {} as TFile;
+		const blocks = await parseBlocks(mockApp, mockFile, matcher);
+
+		const headingBlock = blocks.find((block) =>
+			block.content.startsWith("## A heading with #log")
+		);
+		expect(headingBlock).toBeDefined();
+
+		const sentenceInsideHeading = "And this is a #log sentence.";
+		const blocksWithSentence = blocks.filter((block) =>
+			block.content.includes(sentenceInsideHeading)
+		);
+
+		expect(blocksWithSentence.length).toBe(1);
+		expect(blocksWithSentence[0]).toBe(headingBlock);
+	});
 });

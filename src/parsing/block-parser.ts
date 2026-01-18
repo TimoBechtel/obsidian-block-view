@@ -14,7 +14,7 @@ abstract class SectionBlockParser {
 		startIndex: number,
 		lines: string[],
 		matcher: LineMatcher
-	): Block[] | null;
+	): { blocks: Block[], lastSectionIndex: number } | null;
 }
 
 class ListBlockParser extends SectionBlockParser {
@@ -27,7 +27,7 @@ class ListBlockParser extends SectionBlockParser {
 		startIndex: number,
 		lines: string[],
 		matcher: LineMatcher
-	): Block[] | null {
+	): { blocks: Block[], lastSectionIndex: number } | null {
 		const section = sections[startIndex];
 		if (!section) return null;
 
@@ -62,7 +62,7 @@ class ListBlockParser extends SectionBlockParser {
 			i = endLine + 1;
 		}
 
-		return blocks.length > 0 ? blocks : null;
+		return blocks.length > 0 ? { blocks, lastSectionIndex: startIndex } : null;
 	}
 
 	private findBlockEnd(
@@ -145,7 +145,7 @@ class HeadingBlockParser extends SectionBlockParser {
 		startIndex: number,
 		lines: string[],
 		matcher: LineMatcher
-	): Block[] | null {
+	): { blocks: Block[], lastSectionIndex: number } | null {
 		const section = sections[startIndex];
 		if (!section) return null;
 
@@ -154,6 +154,7 @@ class HeadingBlockParser extends SectionBlockParser {
 
 		const headingLevel = this.getHeadingLevel(headingLine);
 		let endLine = section.position.end.line;
+		let lastSectionIndex = startIndex;
 
 		for (let j = startIndex + 1; j < sections.length; j++) {
 			const nextSection = sections[j];
@@ -168,15 +169,19 @@ class HeadingBlockParser extends SectionBlockParser {
 			}
 
 			endLine = nextSection.position.end.line;
+			lastSectionIndex = j;
 		}
 
-		return [{
-			content: lines
-				.slice(section.position.start.line, endLine + 1)
-				.join("\n"),
-			startLine: section.position.start.line,
-			endLine,
-		}];
+		return {
+			blocks: [{
+				content: lines
+					.slice(section.position.start.line, endLine + 1)
+					.join("\n"),
+				startLine: section.position.start.line,
+				endLine,
+			}],
+			lastSectionIndex,
+		};
 	}
 
 	private getHeadingLevel(line: string): number {
@@ -195,20 +200,23 @@ class CodeBlockParser extends SectionBlockParser {
 		startIndex: number,
 		lines: string[],
 		matcher: LineMatcher
-	): Block[] | null {
+	): { blocks: Block[], lastSectionIndex: number } | null {
 		const section = sections[startIndex];
 		if (!section) return null;
 
 		const fenceLine = lines[section.position.start.line];
 		if (!fenceLine || !matcher.matches(fenceLine)) return null;
 
-		return [{
-			content: lines
-				.slice(section.position.start.line, section.position.end.line + 1)
-				.join("\n"),
-			startLine: section.position.start.line,
-			endLine: section.position.end.line,
-		}];
+		return {
+			blocks: [{
+				content: lines
+					.slice(section.position.start.line, section.position.end.line + 1)
+					.join("\n"),
+				startLine: section.position.start.line,
+				endLine: section.position.end.line,
+			}],
+			lastSectionIndex: startIndex,
+		};
 	}
 }
 
@@ -222,7 +230,7 @@ class TableBlockParser extends SectionBlockParser {
 		startIndex: number,
 		lines: string[],
 		matcher: LineMatcher
-	): Block[] | null {
+	): { blocks: Block[], lastSectionIndex: number } | null {
 		const section = sections[startIndex];
 		if (!section) return null;
 
@@ -239,11 +247,14 @@ class TableBlockParser extends SectionBlockParser {
 		if (!headerLine || !separatorLine) return null;
 
 		if (matcher.matches(headerLine)) {
-			return [{
-				content: tableLines.join("\n"),
-				startLine: section.position.start.line,
-				endLine: section.position.end.line,
-			}];
+			return {
+				blocks: [{
+					content: tableLines.join("\n"),
+					startLine: section.position.start.line,
+					endLine: section.position.end.line,
+				}],
+				lastSectionIndex: startIndex,
+			};
 		}
 
 		const blocks: Block[] = [];
@@ -260,7 +271,7 @@ class TableBlockParser extends SectionBlockParser {
 			}
 		}
 
-		return blocks.length > 0 ? blocks : null;
+		return blocks.length > 0 ? { blocks, lastSectionIndex: startIndex } : null;
 	}
 }
 
@@ -274,7 +285,7 @@ class DefaultSectionParser extends SectionBlockParser {
 		startIndex: number,
 		lines: string[],
 		matcher: LineMatcher
-	): Block[] | null {
+	): { blocks: Block[], lastSectionIndex: number } | null {
 		const section = sections[startIndex];
 		if (!section) return null;
 
@@ -284,13 +295,16 @@ class DefaultSectionParser extends SectionBlockParser {
 
 		if (!hasMatch) return null;
 
-		return [{
-			content: lines
-				.slice(section.position.start.line, section.position.end.line + 1)
-				.join("\n"),
-			startLine: section.position.start.line,
-			endLine: section.position.end.line,
-		}];
+		return {
+			blocks: [{
+				content: lines
+					.slice(section.position.start.line, section.position.end.line + 1)
+					.join("\n"),
+				startLine: section.position.start.line,
+				endLine: section.position.end.line,
+			}],
+			lastSectionIndex: startIndex,
+		};
 	}
 }
 
@@ -331,7 +345,9 @@ export async function parseBlocks(
 
 		const result = parser.extract(metadata.sections, i, lines, matcher);
 		if (result) {
-			blocks.push(...result);
+			blocks.push(...result.blocks);
+			// skip processed sections
+			i = result.lastSectionIndex;
 		}
 	}
 
