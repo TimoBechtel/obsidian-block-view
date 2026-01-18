@@ -21,6 +21,7 @@ abstract class BlockParser {
 	}
 }
 
+// TODO: how is the list block parser different from the paragraph block parser?
 class ListBlockParser extends BlockParser {
 	matches(line: string): boolean {
 		return this.isListLine(line);
@@ -146,8 +147,12 @@ class ParagraphBlockParser extends BlockParser {
 	}
 }
 
-const blockParsers = [new ListBlockParser(), new HeadingBlockParser()];
-const defaultParser = new ParagraphBlockParser();
+const blockParsers = [
+	new ListBlockParser(),
+	new HeadingBlockParser(),
+	new ParagraphBlockParser(),
+
+];
 
 export function parseBlocks(
 	content: string,
@@ -169,8 +174,12 @@ export function parseBlocks(
 			continue;
 		}
 
-		const parser =
-			blockParsers.find((p) => p.matches(line)) ?? defaultParser;
+		const parser = blockParsers.find((p) => p.matches(line));
+		if (!parser) {
+			i++;
+			continue;
+		}
+
 		const block = parser.extract(lines, i);
 		blocks.push(block);
 

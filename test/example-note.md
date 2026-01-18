@@ -41,3 +41,67 @@ This should not be included.
    - Sub item
    - Another sub
 3. Next numbered (not included)
+
+## Blockquotes
+
+> Regular quote without tag
+
+> This is a quote with #log tag
+> Continuation of quote
+> Still part of the same quote
+
+> Another quote without tag
+
+## Task Lists
+
+- [ ] Regular task
+- [ ] Incomplete task with #log
+- [x] Completed task with #log
+  - [ ] Nested task
+- [ ] Next task (not included)
+
+## Callouts
+
+> [!note]
+> Regular callout without tag
+
+> [!note] #log
+> Content inside callout with tag
+> More content here
+
+> [!warning]
+> Another callout with #log tag
+
+## Code Blocks
+
+Regular paragraph before code.
+
+```python #log
+def example():
+    pass
+```
+
+Another paragraph.
+
+```javascript
+// code block with #log tag
+console.log("test");
+```
+
+Paragraph with inline code `some code #log` in it.
+
+## Tables
+
+| Column 1  | Column 2 |
+|-----------|----------|
+| Data      | More     |
+| Data #log | More     |
+
+| Name     | Status #log |
+|----------|-------------|
+| Item 1   | Active      |
+| Item 2   | Pending     |
+
+| Regular  | Table    |
+|----------|----------|
+| No tag   | Here     |

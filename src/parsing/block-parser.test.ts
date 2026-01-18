@@ -114,4 +114,59 @@ describe("extractBlocks", () => {
 		);
 		expect(tagStartBlock?.content).toContain("And continues here.");
 	});
+
+	test("extracts code blocks with tags in fence", () => {
+		const content = `
+Regular paragraph.
+
+\`\`\`python #log
+def example():
+    pass
+\`\`\`
+
+Another paragraph.`;
+
+		const matcher = new TagMatcher(["#log"]);
+		const blocks = parseBlocks(content, matcher);
+
+		expect(blocks.length).toBe(2);
+		const codeBlock = blocks.find((block) => block.content.includes("```"));
+		expect(codeBlock).toBeDefined();
+		expect(codeBlock?.content).toContain("```python #log");
+		expect(codeBlock?.content).toContain("def example():");
+		expect(codeBlock?.content).toContain("```");
+	});
+
+	test("skips code blocks with tags inside code", () => {
+		const content = `
+Regular paragraph.
+
+\`\`\`javascript
+// code with #log tag
+console.log("test");
+\`\`\`
+
+Another paragraph.`;
+
+		const matcher = new TagMatcher(["#log"]);
+		const blocks = parseBlocks(content, matcher);
+
+		expect(blocks.length).toBe(0);
+	});
+
+	test("skips inline code with tags", () => {
+		const content = `
+This paragraph has \`inline code with #log\` but no real tag.
+
+This paragraph has both \`inline #log\` and a real #log tag.`;
+
+		const matcher = new TagMatcher(["#log"]);
+		const blocks = parseBlocks(content, matcher);
+
+		expect(blocks.length).toBe(1);
+		expect(blocks[0]?.content).toContain("real #log tag");
+		expect(blocks[0]?.content).not.toContain(
+			"inline code with #log` but no real tag"
+		);
+	});
 });
