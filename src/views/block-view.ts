@@ -7,7 +7,7 @@ import {
 	type QueryController,
 } from "obsidian";
 import { parseBlocks } from "../parsing/block-parser";
-import { TagMatcher } from "../parsing/matchers";
+import { AndMatcher, OrMatcher, RegexMatcher, TagMatcher, type LineMatcher } from "../parsing/matchers";
 
 export const BlockViewType = "block-view" as const;
 
@@ -26,17 +26,32 @@ export class BlockView extends BasesView implements HoverParent {
 		const { app } = this;
 
 		const tagFilter = this.config.get("tagFilter") as string[];
+		const regexPattern = this.config.get("regexPattern") as string;
+		const matchAll = this.config.get("matchAll") as boolean;
 
 		this.containerEl.empty();
 
-		if (!tagFilter || tagFilter.length === 0) {
+		const hasTagFilter = tagFilter && tagFilter.length > 0;
+		const hasRegexPattern = regexPattern && regexPattern.trim() !== "";
+
+		if (!hasTagFilter && !hasRegexPattern) {
 			return;
 		}
 
 		const showAllFiles = this.config.get("showAllFiles") as boolean;
 		const showFileNames = this.config.get("showFileNames") as boolean;
 		const filterTableRows = this.config.get("filterTableRows") as boolean;
-		const matcher = new TagMatcher(tagFilter);
+
+		const matchers: LineMatcher[] = [
+			...(hasTagFilter ? [new TagMatcher(tagFilter)] : []),
+			...(hasRegexPattern ? [new RegexMatcher(regexPattern)] : []),
+		];
+
+		const matcher = (matchers.length === 1 && matchers[0])
+			? matchers[0]
+			: matchAll
+				? new AndMatcher(matchers)
+				: new OrMatcher(matchers);
 
 		for (const group of this.data.groupedData) {
 			const groupEl = this.containerEl.createDiv("block-view-group");
@@ -68,21 +83,21 @@ export class BlockView extends BasesView implements HoverParent {
 					}
 				}
 
-			const fileEl = groupEl.createDiv("block-view-file");
+				const fileEl = groupEl.createDiv("block-view-file");
 
-			if (showFileNames) {
-				fileEl.createEl("a", {
-					text: file.name,
-					cls: "block-view-file-link internal-link",
-					href: file.path,
-				});
-			}
+				if (showFileNames) {
+					fileEl.createEl("a", {
+						text: file.name,
+						cls: "block-view-file-link internal-link",
+						href: file.path,
+					});
+				}
 
-			this.setupInternalLinkHandlers(fileEl, file.path);
+				this.setupInternalLinkHandlers(fileEl, file.path);
 
-			const blocksEl = fileEl.createDiv("block-view-blocks");
+				const blocksEl = fileEl.createDiv("block-view-blocks");
 
-			for (const block of blocks) {
+				for (const block of blocks) {
 					// markdown-preview-view markdown-rendered - are the internal obsidian classes so that it looks like normal markdown
 					const blockEl = blocksEl.createDiv(
 						"block-view-block markdown-preview-view markdown-rendered"
@@ -210,8 +225,8 @@ export class BlockView extends BasesView implements HoverParent {
 						if (isSearchView(view)) {
 							view.setQuery(`tag:${tag}`);
 						}
-						
-						
+
+
 						this.app.workspace.setActiveLeaf(searchLeaf, { focus: true });
 
 					}

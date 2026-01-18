@@ -18,3 +18,42 @@ export class TagMatcher implements LineMatcher {
 		return this.regexes.some((regex) => regex.test(withoutInlineCode));
 	}
 }
+
+export class RegexMatcher implements LineMatcher {
+	private regex: RegExp | null;
+
+	constructor(pattern: string) {
+		if (!pattern) {
+			this.regex = null;
+			return;
+		}
+		try {
+			this.regex = new RegExp(pattern);
+		} catch {
+			this.regex = null;
+		}
+	}
+
+	matches(line: string): boolean {
+		if (!this.regex) {
+			return false;
+		}
+		return this.regex.test(line);
+	}
+}
+
+export class AndMatcher implements LineMatcher {
+	constructor(private matchers: LineMatcher[]) {}
+
+	matches(line: string): boolean {
+		return this.matchers.every((matcher) => matcher.matches(line));
+	}
+}
+
+export class OrMatcher implements LineMatcher {
+	constructor(private matchers: LineMatcher[]) {}
+
+	matches(line: string): boolean {
+		return this.matchers.some((matcher) => matcher.matches(line));
+	}
+}

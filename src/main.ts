@@ -17,6 +17,19 @@ export default class BlockViewPlugin extends Plugin {
 					default: [],
 				},
 				{
+					type: "text",
+					displayName: "Regex pattern",
+					key: "regexPattern",
+					default: "",
+					placeholder: "e.g. `^- \\[.*\\]`",
+				},
+				{
+					type: "toggle",
+					displayName: "Match all filters (AND)",
+					key: "matchAll",
+					default: false,
+				},
+				{
 					type: "group",
 					displayName: "Display options",
 					items: [
