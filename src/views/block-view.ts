@@ -5,6 +5,7 @@ import {
 	type HoverParent,
 	type HoverPopover,
 	type QueryController,
+	type TFile,
 } from "obsidian";
 import { parseBlocks } from "../parsing/block-parser";
 import { AndMatcher, CodeBlockMatcher, OrMatcher, QuoteMatcher, RegexMatcher, TagMatcher, TaskMatcher, type LineMatcher } from "../parsing/matchers";
@@ -167,6 +168,7 @@ export class BlockView extends BasesView implements HoverParent {
 
 					this.setupInternalLinkHandlers(blockEl, file.path);
 					this.setupTagHandlers(blockEl);
+					this.setupCheckboxHandlers(blockEl, file, block);
 				}
 			}
 
@@ -248,12 +250,62 @@ export class BlockView extends BasesView implements HoverParent {
 							view.setQuery(`tag:${tag}`);
 						}
 
-
 						this.app.workspace.setActiveLeaf(searchLeaf, { focus: true });
-
 					}
 				}
 			});
+		});
+	}
+
+	/**
+	 * Sets up handlers to toggle the task when a checkbox is clicked.
+	 */
+	private setupCheckboxHandlers(
+		blockEl: HTMLElement,
+		file: TFile,
+		block: { startLine: number; endLine: number }
+	) {
+		blockEl.querySelectorAll('input[type="checkbox"].task-list-item-checkbox')
+			.forEach((checkbox: HTMLInputElement, index) => {
+				checkbox.addEventListener("click", (evt) => {
+					evt.preventDefault();
+					evt.stopPropagation();
+					// disable while processing
+					checkbox.disabled = true;
+					void this.toggleTask(file, block, index);
+				});
+			});
+	}
+
+	/**
+	 * Toggles a task at given index in the file. 
+	 */
+	private async toggleTask(
+		file: TFile,
+		block: { startLine: number; endLine: number },
+		checkboxIndex: number
+	): Promise<void> {
+		await this.app.vault.process(file, (content) => {
+			const lines = content.split("\n");
+			let taskCount = 0;
+
+			for (let i = block.startLine; i <= block.endLine; i++) {
+				const line = lines[i];
+				if (line && /^\s*- \[[ xX]\]/.test(line)) {
+					if (taskCount === checkboxIndex) {
+						lines[i] = line.replace(
+							/^(\s*- \[)([ xX])(\].*)$/,
+							(_, prefix, status: string, suffix: string) =>
+								`${prefix}${status.toLowerCase() === "x" ? " " : "x"}${suffix}`
+						);
+						return lines.join("\n");
+					}
+					taskCount++;
+				}
+			}
+
+			console.error("Could not find target task line");
+			return content;
 		});
 	}
 
