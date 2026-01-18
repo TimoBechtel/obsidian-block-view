@@ -43,7 +43,7 @@ export class RegexMatcher implements LineMatcher {
 }
 
 export class AndMatcher implements LineMatcher {
-	constructor(private matchers: LineMatcher[]) {}
+	constructor(private matchers: LineMatcher[]) { }
 
 	matches(line: string): boolean {
 		return this.matchers.every((matcher) => matcher.matches(line));
@@ -51,9 +51,56 @@ export class AndMatcher implements LineMatcher {
 }
 
 export class OrMatcher implements LineMatcher {
-	constructor(private matchers: LineMatcher[]) {}
+	constructor(private matchers: LineMatcher[]) { }
 
 	matches(line: string): boolean {
 		return this.matchers.some((matcher) => matcher.matches(line));
+	}
+}
+
+export class TaskMatcher implements LineMatcher {
+	constructor(private type: "any" | "incomplete" | "complete") { }
+
+	matches(line: string): boolean {
+		const trimmed = line.trim();
+		if (trimmed.startsWith("- [ ]")) {
+			return this.type === "any" || this.type === "incomplete";
+		}
+		if (trimmed.startsWith("- [x]")) {
+			return this.type === "any" || this.type === "complete";
+		}
+		return false;
+	}
+}
+
+export class QuoteMatcher implements LineMatcher {
+	matches(line: string): boolean {
+		return line.trim().startsWith(">");
+	}
+}
+
+export class CodeBlockMatcher implements LineMatcher {
+	private language: string | null;
+
+	constructor(language?: string) {
+		this.language = language?.trim() || null;
+	}
+
+	matches(line: string): boolean {
+		const trimmed = line.trim();
+		if (!trimmed.startsWith("```")) {
+			return false;
+		}
+
+		if (!this.language) {
+			return true;
+		}
+
+		const afterFence = trimmed.slice(3).trim().split(/\s+/)[0];
+		if (!afterFence) {
+			return false;
+		}
+
+		return afterFence.toLowerCase() === this.language.toLowerCase();
 	}
 }

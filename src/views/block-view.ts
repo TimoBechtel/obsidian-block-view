@@ -7,7 +7,7 @@ import {
 	type QueryController,
 } from "obsidian";
 import { parseBlocks } from "../parsing/block-parser";
-import { AndMatcher, OrMatcher, RegexMatcher, TagMatcher, type LineMatcher } from "../parsing/matchers";
+import { AndMatcher, CodeBlockMatcher, OrMatcher, QuoteMatcher, RegexMatcher, TagMatcher, TaskMatcher, type LineMatcher } from "../parsing/matchers";
 
 export const BlockViewType = "block-view" as const;
 
@@ -25,16 +25,22 @@ export class BlockView extends BasesView implements HoverParent {
 	private async render() {
 		const { app } = this;
 
+		const filterTasks = this.config.get("filterTasks") as boolean;
+		const filterTasksType = this.config.get("filterTasksType") as "any" | "incomplete" | "complete";
+		const filterQuotes = this.config.get("filterQuotes") as boolean;
+		const filterCodeBlocks = this.config.get("filterCodeBlocks") as boolean;
+		const filterCodeBlocksLanguage = this.config.get("filterCodeBlocksLanguage") as string;
 		const tagFilter = this.config.get("tagFilter") as string[];
 		const regexPattern = this.config.get("regexPattern") as string;
-		const matchAll = this.config.get("matchAll") as boolean;
+		const matchLogic = this.config.get("matchLogic") as "any" | "all";
 
 		this.containerEl.empty();
 
 		const hasTagFilter = tagFilter && tagFilter.length > 0;
 		const hasRegexPattern = regexPattern && regexPattern.trim() !== "";
+		const hasBlockTypeFilters = filterTasks || filterQuotes || filterCodeBlocks;
 
-		if (!hasTagFilter && !hasRegexPattern) {
+		if (!hasTagFilter && !hasRegexPattern && !hasBlockTypeFilters) {
 			return;
 		}
 
@@ -44,13 +50,16 @@ export class BlockView extends BasesView implements HoverParent {
 		const filterTableRows = this.config.get("filterTableRows") as boolean;
 
 		const matchers: LineMatcher[] = [
+			...(filterTasks ? [new TaskMatcher(filterTasksType)] : []),
+			...(filterQuotes ? [new QuoteMatcher()] : []),
+			...(filterCodeBlocks ? [new CodeBlockMatcher(filterCodeBlocksLanguage)] : []),
 			...(hasTagFilter ? [new TagMatcher(tagFilter)] : []),
 			...(hasRegexPattern ? [new RegexMatcher(regexPattern)] : []),
 		];
 
 		const matcher = (matchers.length === 1 && matchers[0])
 			? matchers[0]
-			: matchAll
+			: matchLogic === "all"
 				? new AndMatcher(matchers)
 				: new OrMatcher(matchers);
 
