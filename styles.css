@@ -8,11 +8,11 @@
 }
 
 .block-view-group-header {
-	font-weight: 600;
-	font-size: 1.1em;
+	font-weight: var(--font-semibold);
+	font-size: var(--font-ui-medium);
 	margin-bottom: 0.75rem;
 	padding-bottom: 0.25rem;
-	border-bottom: 1px solid var(--background-modifier-border);
+	border-bottom: var(--border-width) solid var(--background-modifier-border);
 }
 
 .block-view-file {
@@ -20,7 +20,7 @@
 }
 
 .block-view-file-link {
-	font-weight: 600;
+	font-weight: var(--font-semibold);
 	color: var(--link-color);
 	text-decoration: none;
 	cursor: pointer;
@@ -39,7 +39,7 @@
 .block-view-block {
 	margin-bottom: 0.5rem;
 	padding: 0.5rem;
-	border-left: 2px solid var(--background-modifier-border);
+	border-left: var(--border-width) solid var(--background-modifier-border);
 	padding-left: 0.75rem;
 	user-select: text;
 	cursor: pointer;
@@ -65,13 +65,13 @@
 }
 
 .block-view-placeholder-title {
-	font-size: 1.2em;
-	font-weight: 500;
+	font-size: var(--font-ui-medium);
+	font-weight: var(--font-medium);
 	margin-bottom: 0.3rem;
 	color: var(--text-normal);
 }
 
 .block-view-placeholder-subtitle {
-	font-size: 0.9em;
+	font-size: var(--font-ui-small);
 	margin: 0;
 }
