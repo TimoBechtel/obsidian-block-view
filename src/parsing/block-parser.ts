@@ -36,62 +36,22 @@ class ListBlockParser extends SectionBlockParser {
 
 		while (i <= section.position.end.line) {
 			const line = lines[i];
-			if (!line || line.trim() === "") {
+
+			if (
+				!line?.trim()
+				|| !this.isListLine(line)
+				|| !matcher.matches(line)
+			) {
 				i++;
 				continue;
 			}
 
-			if (!this.isListLine(line)) {
-				i++;
-				continue;
-			}
-
-			if (!matcher.matches(line)) {
-				i++;
-				continue;
-			}
-
-			const baseIndent = this.getIndentLevel(line);
-			let endLine = i;
-
-			for (let j = i + 1; j <= section.position.end.line; j++) {
-				const nextLine = lines[j];
-				if (!nextLine) break;
-
-				if (nextLine.trim() === "") {
-					const nextNonEmpty = this.findNextNonEmptyLine(
-						lines,
-						j + 1,
-						section.position.end.line
-					);
-					if (nextNonEmpty === -1) break;
-
-					const nonEmptyLine = lines[nextNonEmpty];
-					if (
-						!nonEmptyLine ||
-						this.getIndentLevel(nonEmptyLine) <= baseIndent
-					) {
-						break;
-					}
-					endLine = j;
-					continue;
-				}
-
-				const nextIndent = this.getIndentLevel(nextLine);
-				if (nextIndent <= baseIndent && this.isListLine(nextLine)) {
-					break;
-				}
-
-				if (
-					nextIndent > baseIndent ||
-					nextLine.trim() === "" ||
-					!this.isListLine(nextLine)
-				) {
-					endLine = j;
-				} else {
-					break;
-				}
-			}
+			const endLine = this.findBlockEnd(
+				lines,
+				i,
+				section.position.end.line,
+				this.getIndentLevel(line)
+			);
 
 			blocks.push({
 				content: lines.slice(i, endLine + 1).join("\n"),
@@ -105,16 +65,58 @@ class ListBlockParser extends SectionBlockParser {
 		return blocks.length > 0 ? blocks : null;
 	}
 
+	private findBlockEnd(
+		lines: string[],
+		startLine: number,
+		maxLine: number,
+		baseIndent: number
+	): number {
+		let endLine = startLine;
+
+		for (let j = startLine + 1; j <= maxLine; j++) {
+			const line = lines[j];
+			if (!line) break;
+
+			if (line.trim() === "") {
+				const nextNonEmpty = this.findNextNonEmptyLine(lines, j + 1, maxLine);
+				if (
+					nextNonEmpty === -1
+					|| this.getIndentLevel(lines[nextNonEmpty] ?? "") <= baseIndent
+				) {
+					break;
+				}
+				endLine = j;
+				continue;
+			}
+
+			const indent = this.getIndentLevel(line);
+			if (indent <= baseIndent && this.isListLine(line)) {
+				break;
+			}
+
+			if (
+				indent > baseIndent ||
+				!this.isListLine(line)
+			) {
+				endLine = j;
+			} else {
+				break;
+			}
+		}
+
+		return endLine;
+	}
+
 	private getIndentLevel(line: string): number {
-		const match = line.match(/^(\s*)/);
-		return match && match[1] ? match[1].length : 0;
+		return line.match(/^(\s*)/)?.[1]?.length ?? 0;
 	}
 
 	private isListLine(line: string): boolean {
+		const trimmed = line.trim();
 		return (
-			line.trim().startsWith("-") ||
-			line.trim().startsWith("*") ||
-			/^\s*\d+\./.test(line)
+			trimmed.startsWith("-")
+			|| trimmed.startsWith("*")
+			|| /^\s*\d+\./.test(line)
 		);
 	}
 
@@ -125,7 +127,7 @@ class ListBlockParser extends SectionBlockParser {
 	): number {
 		for (let i = start; i <= maxLine; i++) {
 			const line = lines[i];
-			if (line && line.trim() !== "") {
+			if (line?.trim()) {
 				return i;
 			}
 		}
@@ -224,17 +226,9 @@ class DefaultSectionParser extends SectionBlockParser {
 		const section = sections[startIndex];
 		if (!section) return null;
 
-		let hasMatch = false;
-		for (
-			let i = section.position.start.line;
-			i <= section.position.end.line;
-			i++
-		) {
-			if (matcher.matches(lines[i] ?? "")) {
-				hasMatch = true;
-				break;
-			}
-		}
+		const hasMatch = lines
+			.slice(section.position.start.line, section.position.end.line + 1)
+			.some((line) => matcher.matches(line ?? ""));
 
 		if (!hasMatch) return null;
 
