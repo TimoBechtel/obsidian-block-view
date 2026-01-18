@@ -212,6 +212,58 @@ class CodeBlockParser extends SectionBlockParser {
 	}
 }
 
+class TableBlockParser extends SectionBlockParser {
+	matches(section: SectionCache): boolean {
+		return section.type === "table";
+	}
+
+	extract(
+		sections: SectionCache[],
+		startIndex: number,
+		lines: string[],
+		matcher: LineMatcher
+	): Block[] | null {
+		const section = sections[startIndex];
+		if (!section) return null;
+
+		const tableLines = lines.slice(
+			section.position.start.line,
+			section.position.end.line + 1
+		);
+
+		if (tableLines.length < 2) return null;
+
+		const headerLine = tableLines[0];
+		const separatorLine = tableLines[1];
+
+		if (!headerLine || !separatorLine) return null;
+
+		if (matcher.matches(headerLine)) {
+			return [{
+				content: tableLines.join("\n"),
+				startLine: section.position.start.line,
+				endLine: section.position.end.line,
+			}];
+		}
+
+		const blocks: Block[] = [];
+		// only include rows that match
+		for (let i = 2; i < tableLines.length; i++) {
+			const dataLine = tableLines[i];
+			if (dataLine && matcher.matches(dataLine)) {
+				const blockLines = [headerLine, separatorLine, dataLine];
+				blocks.push({
+					content: blockLines.join("\n"),
+					startLine: section.position.start.line,
+					endLine: section.position.start.line + i,
+				});
+			}
+		}
+
+		return blocks.length > 0 ? blocks : null;
+	}
+}
+
 class DefaultSectionParser extends SectionBlockParser {
 	matches(): boolean {
 		return true;
@@ -242,17 +294,15 @@ class DefaultSectionParser extends SectionBlockParser {
 	}
 }
 
-const sectionParsers = [
-	new HeadingBlockParser(),
-	new CodeBlockParser(),
-	new ListBlockParser(),
-	new DefaultSectionParser(),
-];
+type ParseOptions = {
+	filterTableRows?: boolean;
+};
 
 export async function parseBlocks(
 	app: App,
 	file: TFile,
-	matcher: LineMatcher
+	matcher: LineMatcher,
+	options?: ParseOptions
 ): Promise<Block[]> {
 	const metadata = app.metadataCache.getFileCache(file);
 	if (!metadata?.sections) return [];
@@ -263,6 +313,14 @@ export async function parseBlocks(
 	const content = await app.vault.cachedRead(file);
 	const lines = content.split("\n");
 	const blocks: Block[] = [];
+
+	const sectionParsers = [
+		new HeadingBlockParser(),
+		new CodeBlockParser(),
+		new ListBlockParser(),
+		...(options?.filterTableRows ? [new TableBlockParser()] : []),
+		new DefaultSectionParser(),
+	];
 
 	for (let i = 0; i < metadata.sections.length; i++) {
 		const section = metadata.sections[i];

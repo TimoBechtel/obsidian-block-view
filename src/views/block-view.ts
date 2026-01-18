@@ -35,6 +35,7 @@ export class BlockView extends BasesView implements HoverParent {
 
 		const showAllFiles = this.config.get("showAllFiles") as boolean;
 		const showFileNames = this.config.get("showFileNames") as boolean;
+		const filterTableRows = this.config.get("filterTableRows") as boolean;
 		const matcher = new TagMatcher(tagFilter);
 
 		for (const group of this.data.groupedData) {
@@ -47,7 +48,9 @@ export class BlockView extends BasesView implements HoverParent {
 				if (!showAllFiles && file.extension !== "md") {
 					continue;
 				}
-				const blocks = await parseBlocks(app, file, matcher);
+				const blocks = await parseBlocks(app, file, matcher, {
+					filterTableRows,
+				});
 
 				if (blocks.length === 0) {
 					continue;

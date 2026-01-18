@@ -206,19 +206,23 @@ describe("extractBlocks", () => {
 		expect(blockquote?.content).not.toContain("> Another quote without tag");
 	});
 
-	test("extracts tables with tags", async () => {
+	test("extracts tables with tags when filtering rows", async () => {
 		const matcher = new TagMatcher(["#log"]);
 		const mockApp = createMockApp(exampleNote, exampleSections);
 		const mockFile = {} as TFile;
-		const blocks = await parseBlocks(mockApp, mockFile, matcher);
+		const blocks = await parseBlocks(mockApp, mockFile, matcher, {
+			filterTableRows: true,
+		});
 
 		const tableWithTagInCell = blocks.find((block) =>
 			block.content.includes("| Data #log |")
 		);
 		expect(tableWithTagInCell).toBeDefined();
 		expect(tableWithTagInCell?.content).toContain("| Column 1  | Column 2 |");
+		expect(tableWithTagInCell?.content).not.toContain("| Data      | More     |");
 		expect(tableWithTagInCell?.content).toContain("| Data #log | More     |");
 
+		// when header matches, all rows are included
 		const tableWithTagInHeader = blocks.find((block) =>
 			block.content.includes("| Status #log |")
 		);
@@ -226,5 +230,20 @@ describe("extractBlocks", () => {
 		expect(tableWithTagInHeader?.content).toContain("| Name     | Status #log |");
 		expect(tableWithTagInHeader?.content).toContain("| Item 1   | Active      |");
 		expect(tableWithTagInHeader?.content).toContain("| Item 2   | Pending     |");
+	});
+
+	test("extracts full tables by default", async () => {
+		const matcher = new TagMatcher(["#log"]);
+		const mockApp = createMockApp(exampleNote, exampleSections);
+		const mockFile = {} as TFile;
+		const blocks = await parseBlocks(mockApp, mockFile, matcher);
+
+		const tableBlock = blocks.find((block) =>
+			block.content.includes("| Data #log |")
+		);
+		expect(tableBlock).toBeDefined();
+		expect(tableBlock?.content).toContain("| Column 1  | Column 2 |");
+		expect(tableBlock?.content).toContain("| Data      | More     |");
+		expect(tableBlock?.content).toContain("| Data #log | More     |");
 	});
 });

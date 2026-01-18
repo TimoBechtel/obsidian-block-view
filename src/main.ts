@@ -32,6 +32,12 @@ export default class BlockViewPlugin extends Plugin {
 							key: "showAllFiles",
 							default: false,
 						},
+						{
+							type: "toggle",
+							displayName: "Only include matching table rows",
+							key: "filterTableRows",
+							default: false,
+						},
 					],
 				},
 			],
