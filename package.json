@@ -1,7 +1,7 @@
 {
-	"name": "obsidian-sample-plugin",
+	"name": "obsidian-block-view",
 	"version": "1.0.0",
-	"description": "This is a sample plugin for Obsidian (https://obsidian.md)",
+	"description": "Displays blocks of notes in a bases view",
 	"main": "main.js",
 	"type": "module",
 	"scripts": {
