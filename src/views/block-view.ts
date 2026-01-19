@@ -59,6 +59,7 @@ export class BlockView extends BasesView implements HoverParent {
 		const showFilesWithoutMatches = !!this.config.get("showFilesWithoutMatches");
 		const filterTableRows = !!this.config.get("filterTableRows");
 		const propertySeparator = String(this.config.get('separator') as string ?? '|');
+		const maxBlocksPerFile = Number(this.config.get("maxBlocksPerFile") as string ?? "0") || 0;
 
 		const matchers: LineMatcher[] = [
 			...(filterTasks ? [new TaskMatcher(filterTasksType)] : []),
@@ -103,6 +104,7 @@ export class BlockView extends BasesView implements HoverParent {
 				const content = await app.vault.cachedRead(file);
 				const blocks = parseBlocks(content, metadata, matcher, {
 					filterTableRows,
+					limit: maxBlocksPerFile > 0 ? maxBlocksPerFile : undefined,
 				});
 
 				if (blocks.length === 0 && !showFilesWithoutMatches) {

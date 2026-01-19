@@ -330,6 +330,7 @@ class DefaultSectionParser extends SectionBlockParser {
 
 type ParseOptions = {
 	filterTableRows?: boolean;
+	limit?: number;
 };
 
 export function parseBlocks(
@@ -371,6 +372,11 @@ export function parseBlocks(
 			blocks.push(...result.blocks);
 			// skip processed sections
 			i = result.lastSectionIndex;
+
+			// early termination if limit is reached
+			if (options?.limit && blocks.length >= options.limit) {
+				return blocks.slice(0, options.limit);
+			}
 		}
 	}
 

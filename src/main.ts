@@ -99,14 +99,21 @@ export default class BlockViewPlugin extends Plugin {
 							key: "showAllFiles",
 							default: false,
 						},
-						{
-							type: "toggle",
-							displayName: "Only include matching table rows",
-							key: "filterTableRows",
-							default: false,
-						},
-					],
-				},
+					{
+						type: "toggle",
+						displayName: "Only include matching table rows",
+						key: "filterTableRows",
+						default: false,
+					},
+					{
+						type: "text",
+						displayName: "Max blocks per file",
+						key: "maxBlocksPerFile",
+						default: "0",
+						placeholder: "0 = unlimited",
+					},
+				],
+			},
 			],
 		});
 	}
