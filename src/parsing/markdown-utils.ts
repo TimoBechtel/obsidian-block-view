@@ -1,32 +1,34 @@
 /**
- * Regex to match a task. 
- * It supports the following task markers:
- * - - [ ]
- * - 1) [ ]
+ * Regex to match a task. Includes capture groups for toggling the task status.
  * 
- * The following are not rendered as checkboxes by MarkdownRenderer and therefore not matched:
+ * It supports the following task markers:
+ * - [ ]
+ * - 1) [ ]
+ * - 1. [ ]
  * - * [ ]
  * - + [ ]
- * - 1.) [ ]
- * - 1. [ ]
  * 
- * Obsidian supports them, but MarkdownRenderer does not appear to support them..
+ * As well as nested task markers:
+ * > - [ ]
+ * > 1) [x]
+ * > > - [x]
  * 
  */
-const TASK_LINE_REGEX = /^(?:>\s*)*(?:-|\d+\))\s+\[[ xX]\]/;
-const TASK_TOGGLE_REGEX = /^(\s*(?:>\s*)*(?:-|\d+\))\s+\[)([ xX])(\].*)$/;
+const TASK_TOGGLE_REGEX = /^(\s*[>\s]*[-*+\d.)]+\s+\[)([ xX])(\].*)$/;
 
 export function isTaskLine(line: string): boolean {
-	return TASK_LINE_REGEX.test(line.trim());
+	// quick check first to prevent unnecessary regex execution
+	if (!line.includes("[") || !line.includes("]")) return false;
+	return TASK_TOGGLE_REGEX.test(line);
 }
 
 /**
  * Toggles the task status in a task line string.
  */
-export function toggleTaskLine(line: string): string {
+export function toggleTaskLine(line: string, checked?: boolean): string {
 	return line.replace(
 		TASK_TOGGLE_REGEX,
 		(_, prefix: string, status: string, suffix: string) =>
-			`${prefix}${status.toLowerCase() === "x" ? " " : "x"}${suffix}`
+			`${prefix}${checked === true ? "x" : checked === false ? " " : status.toLowerCase() === "x" ? " " : "x"}${suffix}`
 	);
 }

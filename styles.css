@@ -81,3 +81,7 @@
 	font-size: var(--font-ui-small);
 	margin: 0;
 }
+
+.bv-task-anchor {
+	display: none;
+}

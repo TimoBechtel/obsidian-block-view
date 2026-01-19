@@ -8,8 +8,8 @@ import {
 	type TFile,
 } from "obsidian";
 import { parseBlocks } from "../parsing/block-parser";
-import { AndMatcher, CodeBlockMatcher, OrMatcher, QuoteMatcher, RegexMatcher, TagMatcher, TaskMatcher, type LineMatcher } from "../parsing/matchers";
 import { isTaskLine, toggleTaskLine } from "../parsing/markdown-utils";
+import { AndMatcher, CodeBlockMatcher, OrMatcher, QuoteMatcher, RegexMatcher, TagMatcher, TaskMatcher, type LineMatcher } from "../parsing/matchers";
 
 export const BlockViewType = "block-view" as const;
 
@@ -159,9 +159,10 @@ export class BlockView extends BasesView implements HoverParent {
 						);
 					});
 
+					const decoratedContent = this.decorateTaskLines(block.content, block.startLine);
 					await MarkdownRenderer.render(
 						app,
-						block.content,
+						decoratedContent,
 						blockEl,
 						file.path,
 						this
@@ -169,7 +170,7 @@ export class BlockView extends BasesView implements HoverParent {
 
 					this.setupInternalLinkHandlers(blockEl, file.path);
 					this.setupTagHandlers(blockEl);
-					this.setupCheckboxHandlers(blockEl, file, block);
+					this.setupCheckboxHandlers(blockEl, file);
 				}
 			}
 
@@ -259,50 +260,57 @@ export class BlockView extends BasesView implements HoverParent {
 	}
 
 	/**
-	 * Sets up handlers to toggle the task when a checkbox is clicked.
+	 * Adds hidden anchors to task lines with the line number in the markdown source.
 	 */
-	private setupCheckboxHandlers(
-		blockEl: HTMLElement,
-		file: TFile,
-		block: { startLine: number; endLine: number }
-	) {
-		blockEl.querySelectorAll('input[type="checkbox"].task-list-item-checkbox')
-			.forEach((checkbox: HTMLInputElement, index) => {
-				checkbox.addEventListener("click", (evt) => {
-					evt.preventDefault();
-					evt.stopPropagation();
-					// disable while processing
-					checkbox.disabled = true;
-					void this.toggleTask(file, block, index);
-				});
-			});
+	private decorateTaskLines(content: string, startLine: number): string {
+		// quick check first to skip unnecessary splitting
+		if (!content.includes("[") || !content.includes("]")) return content;
+		return content
+			.split("\n")
+			.map((line, rel) => isTaskLine(line)
+				? `${line}<span class="bv-task-anchor" data-bv-line="${startLine + rel}"></span>`
+				: line
+			)
+			.join("\n");
 	}
 
 	/**
-	 * Toggles a task at given index in the file. 
+	 * Sets up handlers to toggle the task when a checkbox is clicked.
 	 */
-	private async toggleTask(
-		file: TFile,
-		block: { startLine: number; endLine: number },
-		checkboxIndex: number
-	): Promise<void> {
+	private setupCheckboxHandlers(blockEl: HTMLElement, file: TFile) {
+		blockEl.querySelectorAll<HTMLElement>(".bv-task-anchor").forEach((anchor) => {
+			const line = anchor.getAttribute("data-bv-line");
+			if (!line) return;
+
+			const li = anchor.closest("li");
+			if (!li) return;
+
+			const checkbox = li.querySelector<HTMLInputElement>('input[type="checkbox"].task-list-item-checkbox');
+			if (!checkbox) return;
+
+			// setup click handler to toggle the task
+			checkbox.addEventListener("click", (evt) => {
+				evt.preventDefault();
+				evt.stopPropagation();
+				if (!(evt.target instanceof HTMLInputElement)) return;
+
+				evt.target.disabled = true;
+				void this.toggleTaskAtLine(file, Number(line));
+			});
+		});
+	}
+
+	private async toggleTaskAtLine(file: TFile, line: number): Promise<void> {
 		await this.app.vault.process(file, (content) => {
 			const lines = content.split("\n");
-			let taskCount = 0;
-
-			for (let i = block.startLine; i <= block.endLine; i++) {
-				const line = lines[i];
-				if (line && isTaskLine(line)) {
-					if (taskCount === checkboxIndex) {
-						lines[i] = toggleTaskLine(line);
-						return lines.join("\n");
-					}
-					taskCount++;
-				}
+			const current = lines[line];
+			if (!current || !isTaskLine(current)) {
+				console.error("Could not find target task line");
+				return content;
 			}
 
-			console.error("Could not find target task line");
-			return content;
+			lines[line] = toggleTaskLine(current);
+			return lines.join("\n");
 		});
 	}
 
