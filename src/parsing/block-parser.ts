@@ -1,4 +1,4 @@
-import type { App, SectionCache, TFile } from "obsidian";
+import type { CachedMetadata, ListItemCache, SectionCache } from "obsidian";
 import type { LineMatcher } from "./matchers";
 
 type Block = {
@@ -7,14 +7,16 @@ type Block = {
 	endLine: number;
 };
 
+type ExtractOptions = {
+	startIndex: number;
+	lines: string[];
+	matcher: LineMatcher;
+	cache: CachedMetadata;
+};
+
 abstract class SectionBlockParser {
 	abstract matches(section: SectionCache): boolean;
-	abstract extract(
-		sections: SectionCache[],
-		startIndex: number,
-		lines: string[],
-		matcher: LineMatcher
-	): { blocks: Block[], lastSectionIndex: number } | null;
+	abstract extract(options: ExtractOptions): { blocks: Block[], lastSectionIndex: number } | null;
 }
 
 class ListBlockParser extends SectionBlockParser {
@@ -22,117 +24,93 @@ class ListBlockParser extends SectionBlockParser {
 		return section.type === "list";
 	}
 
-	extract(
-		sections: SectionCache[],
-		startIndex: number,
-		lines: string[],
-		matcher: LineMatcher
-	): { blocks: Block[], lastSectionIndex: number } | null {
+	extract({ startIndex, lines, matcher, cache }: ExtractOptions): { blocks: Block[], lastSectionIndex: number } | null {
+		const sections = cache.sections;
+		if (!sections) return null;
+
 		const section = sections[startIndex];
 		if (!section) return null;
 
+		const listItemsInSection = cache.listItems?.filter(item =>
+			item.position.start.line >= section.position.start.line &&
+			item.position.end.line <= section.position.end.line
+		) ?? [];
+
+		if (listItemsInSection.length === 0) return null;
+
 		const blocks: Block[] = [];
-		let i = section.position.start.line;
 
-		while (i <= section.position.end.line) {
-			const line = lines[i];
+		let lastProcessedLine = -1;
 
-			if (
-				!line?.trim()
-				|| !this.isListLine(line)
-				|| !matcher.matches(line)
-			) {
-				i++;
+		for (let i = 0; i < listItemsInSection.length; i++) {
+			const item = listItemsInSection[i];
+			if (!item) continue;
+
+			const startLine = item.position.start.line;
+
+			if (startLine <= lastProcessedLine) continue;
+
+			if (!matcher.matches({
+				line: lines[startLine] ?? "",
+				lineNumber: startLine,
+				cache,
+				section,
+			})) {
 				continue;
 			}
 
-			const endLine = this.findBlockEnd(
-				lines,
+			const endLine = this.findBlockEndForItem(
 				i,
-				section.position.end.line,
-				this.getIndentLevel(line)
+				listItemsInSection,
+				section.position.end.line
 			);
 
+			lastProcessedLine = endLine;
+
 			blocks.push({
-				content: lines.slice(i, endLine + 1).join("\n"),
-				startLine: i,
+				content: lines.slice(startLine, endLine + 1).join("\n"),
+				startLine,
 				endLine,
 			});
-
-			i = endLine + 1;
 		}
 
 		return blocks.length > 0 ? { blocks, lastSectionIndex: startIndex } : null;
 	}
 
-	private findBlockEnd(
-		lines: string[],
-		startLine: number,
-		maxLine: number,
-		baseIndent: number
+	/**
+	 * Finds the end line of a block starting from a list item.
+	 * Includes all children and continuation paragraphs.
+	 * 
+	 * Note: Assumes the items are sorted by start line.
+	 */
+	private findBlockEndForItem(
+		startItemIndex: number,
+		items: ListItemCache[],
+		maxLine: number
 	): number {
-		let endLine = startLine;
+		const parentItem = items[startItemIndex];
+		if (!parentItem) return -1;
 
-		for (let j = startLine + 1; j <= maxLine; j++) {
-			const line = lines[j];
-			if (!line) break;
+		let endLine = parentItem.position.end.line;
 
-			if (line.trim() === "") {
-				const nextNonEmpty = this.findNextNonEmptyLine(lines, j + 1, maxLine);
-				if (
-					nextNonEmpty === -1
-					|| this.getIndentLevel(lines[nextNonEmpty] ?? "") <= baseIndent
-				) {
-					break;
+		const validParents = new Set<number>();
+		validParents.add(parentItem.position.start.line);
+
+		for (let i = startItemIndex + 1; i < items.length; i++) {
+			const current = items[i];
+			if (!current) break;
+
+			if (validParents.has(current.parent)) {
+				if (current.position.end.line > endLine) {
+					endLine = current.position.end.line;
 				}
-				endLine = j;
-				continue;
-			}
-
-			const indent = this.getIndentLevel(line);
-			if (indent <= baseIndent && this.isListLine(line)) {
-				break;
-			}
-
-			if (
-				indent > baseIndent ||
-				!this.isListLine(line)
-			) {
-				endLine = j;
+				validParents.add(current.position.start.line);
 			} else {
 				break;
 			}
 		}
 
-		return endLine;
-	}
-
-	private getIndentLevel(line: string): number {
-		return line.match(/^(\s*)/)?.[1]?.length ?? 0;
-	}
-
-	private isListLine(line: string): boolean {
-		const trimmed = line.trim();
-		return (
-			trimmed.startsWith("-")
-			|| trimmed.startsWith("*")
-			|| trimmed.startsWith("+")
-			|| /^\d+[.)]/.test(line)
-		);
-	}
-
-	private findNextNonEmptyLine(
-		lines: string[],
-		start: number,
-		maxLine: number
-	): number {
-		for (let i = start; i <= maxLine; i++) {
-			const line = lines[i];
-			if (line?.trim()) {
-				return i;
-			}
-		}
-		return -1;
+		return Math.min(endLine, maxLine);
 	}
 }
 
@@ -141,17 +119,24 @@ class HeadingBlockParser extends SectionBlockParser {
 		return section.type === "heading";
 	}
 
-	extract(
-		sections: SectionCache[],
-		startIndex: number,
-		lines: string[],
-		matcher: LineMatcher
-	): { blocks: Block[], lastSectionIndex: number } | null {
+	extract({ startIndex, lines, matcher, cache }: ExtractOptions): { blocks: Block[], lastSectionIndex: number } | null {
+		const sections = cache.sections;
+		if (!sections) return null;
+
 		const section = sections[startIndex];
 		if (!section) return null;
 
 		const headingLine = lines[section.position.start.line];
-		if (!headingLine || !matcher.matches(headingLine)) return null;
+		if (!headingLine) return null;
+
+		if (!matcher.matches({
+			line: headingLine,
+			lineNumber: section.position.start.line,
+			cache,
+			section,
+		})) {
+			return null;
+		}
 
 		const headingLevel = this.getHeadingLevel(headingLine);
 		let endLine = section.position.end.line;
@@ -196,17 +181,24 @@ class CodeBlockParser extends SectionBlockParser {
 		return section.type === "code";
 	}
 
-	extract(
-		sections: SectionCache[],
-		startIndex: number,
-		lines: string[],
-		matcher: LineMatcher
-	): { blocks: Block[], lastSectionIndex: number } | null {
+	extract({ startIndex, lines, matcher, cache }: ExtractOptions): { blocks: Block[], lastSectionIndex: number } | null {
+		const sections = cache.sections;
+		if (!sections) return null;
+
 		const section = sections[startIndex];
 		if (!section) return null;
 
 		const fenceLine = lines[section.position.start.line];
-		if (!fenceLine || !matcher.matches(fenceLine)) return null;
+		if (!fenceLine) return null;
+
+		if (!matcher.matches({
+			line: fenceLine,
+			lineNumber: section.position.start.line,
+			cache,
+			section,
+		})) {
+			return null;
+		}
 
 		return {
 			blocks: [{
@@ -226,12 +218,10 @@ class TableBlockParser extends SectionBlockParser {
 		return section.type === "table";
 	}
 
-	extract(
-		sections: SectionCache[],
-		startIndex: number,
-		lines: string[],
-		matcher: LineMatcher
-	): { blocks: Block[], lastSectionIndex: number } | null {
+	extract({ startIndex, lines, matcher, cache }: ExtractOptions): { blocks: Block[], lastSectionIndex: number } | null {
+		const sections = cache.sections;
+		if (!sections) return null;
+
 		const section = sections[startIndex];
 		if (!section) return null;
 
@@ -247,7 +237,12 @@ class TableBlockParser extends SectionBlockParser {
 
 		if (!headerLine || !separatorLine) return null;
 
-		if (matcher.matches(headerLine)) {
+		if (matcher.matches({
+			line: headerLine,
+			lineNumber: section.position.start.line,
+			cache,
+			section,
+		})) {
 			return {
 				blocks: [{
 					content: tableLines.join("\n"),
@@ -259,10 +254,16 @@ class TableBlockParser extends SectionBlockParser {
 		}
 
 		const blocks: Block[] = [];
-		// only include rows that match
 		for (let i = 2; i < tableLines.length; i++) {
 			const dataLine = tableLines[i];
-			if (dataLine && matcher.matches(dataLine)) {
+			if (!dataLine) continue;
+
+			if (matcher.matches({
+				line: dataLine,
+				lineNumber: section.position.start.line + i,
+				cache,
+				section,
+			})) {
 				const blockLines = [headerLine, separatorLine, dataLine];
 				blocks.push({
 					content: blockLines.join("\n"),
@@ -281,18 +282,23 @@ class DefaultSectionParser extends SectionBlockParser {
 		return true;
 	}
 
-	extract(
-		sections: SectionCache[],
-		startIndex: number,
-		lines: string[],
-		matcher: LineMatcher
-	): { blocks: Block[], lastSectionIndex: number } | null {
+	extract({ startIndex, lines, matcher, cache }: ExtractOptions): { blocks: Block[], lastSectionIndex: number } | null {
+		const sections = cache.sections;
+		if (!sections) return null;
+
 		const section = sections[startIndex];
 		if (!section) return null;
 
 		const hasMatch = lines
 			.slice(section.position.start.line, section.position.end.line + 1)
-			.some((line) => matcher.matches(line ?? ""));
+			.some((line, idx) => {
+				return matcher.matches({
+					line: line ?? "",
+					lineNumber: section.position.start.line + idx,
+					cache,
+					section,
+				});
+			});
 
 		if (!hasMatch) return null;
 
@@ -313,19 +319,17 @@ type ParseOptions = {
 	filterTableRows?: boolean;
 };
 
-export async function parseBlocks(
-	app: App,
-	file: TFile,
+export function parseBlocks(
+	content: string,
+	metadata: CachedMetadata,
 	matcher: LineMatcher,
 	options?: ParseOptions
-): Promise<Block[]> {
-	const metadata = app.metadataCache.getFileCache(file);
+): Block[] {
 	if (!metadata?.sections) return [];
 
-	// Log sections to update the test file:
-	// console.log('sections', metadata.sections);
+	// log metadata to update the test file:
+	// console.log('metadata', metadata);
 
-	const content = await app.vault.cachedRead(file);
 	const lines = content.split("\n");
 	const blocks: Block[] = [];
 
@@ -341,10 +345,15 @@ export async function parseBlocks(
 		const section = metadata.sections[i];
 		if (!section || section.type === "yaml") continue;
 
-		const parser = sectionParsers.find((p) => p.matches(section));
+		const parser: SectionBlockParser | undefined = sectionParsers.find((p) => p.matches(section));
 		if (!parser) continue;
 
-		const result = parser.extract(metadata.sections, i, lines, matcher);
+		const result = parser.extract({
+			startIndex: i,
+			lines,
+			matcher,
+			cache: metadata,
+		});
 		if (result) {
 			blocks.push(...result.blocks);
 			// skip processed sections

@@ -1,23 +1,33 @@
-import { isTaskLine } from "./markdown-utils";
+import type { CachedMetadata, SectionCache } from "obsidian";
+
+export interface MatchContext {
+	line: string;
+	lineNumber: number;
+	section: SectionCache;
+	cache: CachedMetadata;
+}
 
 export interface LineMatcher {
-	matches(line: string): boolean;
+	matches(context: MatchContext): boolean;
 }
 
 export class TagMatcher implements LineMatcher {
-	private regexes: RegExp[];
+	private targetTags: string[];
 
 	constructor(tags: string[]) {
-		this.regexes = tags.map((tag) => {
+		this.targetTags = tags.map((tag) => {
 			const normalized = tag.startsWith("#") ? tag : `#${tag}`;
-			const escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-			return new RegExp(`${escaped}\\b`, "i");
+			return normalized.toLowerCase();
 		});
 	}
 
-	matches(line: string): boolean {
-		const withoutInlineCode = line.replace(/`[^`]*`/g, "");
-		return this.regexes.some((regex) => regex.test(withoutInlineCode));
+	matches({ cache, lineNumber }: MatchContext): boolean {
+		const tagsOnLine = cache.tags?.filter(t =>
+			t.position.start.line === lineNumber &&
+			this.targetTags.includes(t.tag.toLowerCase())
+		);
+
+		return tagsOnLine !== undefined && tagsOnLine.length > 0;
 	}
 }
 
@@ -36,7 +46,7 @@ export class RegexMatcher implements LineMatcher {
 		}
 	}
 
-	matches(line: string): boolean {
+	matches({ line }: MatchContext): boolean {
 		if (!this.regex) {
 			return false;
 		}
@@ -47,16 +57,16 @@ export class RegexMatcher implements LineMatcher {
 export class AndMatcher implements LineMatcher {
 	constructor(private matchers: LineMatcher[]) { }
 
-	matches(line: string): boolean {
-		return this.matchers.every((matcher) => matcher.matches(line));
+	matches(context: MatchContext): boolean {
+		return this.matchers.every((matcher) => matcher.matches(context));
 	}
 }
 
 export class OrMatcher implements LineMatcher {
 	constructor(private matchers: LineMatcher[]) { }
 
-	matches(line: string): boolean {
-		return this.matchers.some((matcher) => matcher.matches(line));
+	matches(context: MatchContext): boolean {
+		return this.matchers.some((matcher) => matcher.matches(context));
 	}
 }
 
@@ -65,24 +75,21 @@ export class OrMatcher implements LineMatcher {
 export class TaskMatcher implements LineMatcher {
 	constructor(private type: "any" | "incomplete" | "complete") { }
 
-	matches(line: string): boolean {
-		const trimmed = line.trim();
-		if (!isTaskLine(trimmed)) {
-			return false;
-		}
-
-		const isComplete = /\[[xX]\]/.test(trimmed);
-
+	matches({ cache, lineNumber }: MatchContext): boolean {
+		const listItem = cache.listItems?.find(item =>
+			item.position.start.line === lineNumber
+		);
+		if (!listItem || listItem.task === undefined) return false;
 		if (this.type === "any") return true;
-		if (this.type === "incomplete") return !isComplete;
-		if (this.type === "complete") return isComplete;
+		if (this.type === "incomplete") return listItem.task === " ";
+		if (this.type === "complete") return listItem.task !== " ";
 		return false;
 	}
 }
 
 export class QuoteMatcher implements LineMatcher {
-	matches(line: string): boolean {
-		return line.trim().startsWith(">");
+	matches({ section }: MatchContext): boolean {
+		return section.type === "blockquote" || section.type === 'callout';
 	}
 }
 
@@ -93,9 +100,8 @@ export class CodeBlockMatcher implements LineMatcher {
 		this.language = language?.trim() || null;
 	}
 
-	matches(line: string): boolean {
-		const trimmed = line.trim();
-		if (!trimmed.startsWith("```")) {
+	matches({ line, section }: MatchContext): boolean {
+		if (section.type !== "code") {
 			return false;
 		}
 
@@ -103,6 +109,7 @@ export class CodeBlockMatcher implements LineMatcher {
 			return true;
 		}
 
+		const trimmed = line.trim();
 		const afterFence = trimmed.slice(3).trim().split(/\s+/)[0];
 		if (!afterFence) {
 			return false;

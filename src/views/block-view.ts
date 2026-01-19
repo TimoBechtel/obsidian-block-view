@@ -5,10 +5,9 @@ import {
 	type HoverParent,
 	type HoverPopover,
 	type QueryController,
-	type TFile,
+	type TFile
 } from "obsidian";
 import { parseBlocks } from "../parsing/block-parser";
-import { isTaskLine, toggleTaskLine } from "../parsing/markdown-utils";
 import { AndMatcher, CodeBlockMatcher, OrMatcher, QuoteMatcher, RegexMatcher, TagMatcher, TaskMatcher, type LineMatcher } from "../parsing/matchers";
 
 export const BlockViewType = "block-view" as const;
@@ -84,7 +83,24 @@ export class BlockView extends BasesView implements HoverParent {
 				if (!showAllFiles && file.extension !== "md") {
 					continue;
 				}
-				const blocks = await parseBlocks(app, file, matcher, {
+
+				const metadata = app.metadataCache.getFileCache(file);
+				if (!metadata) {
+					continue;
+				}
+
+				/**
+				 * Lines that contain tasks in the file.
+				 */
+				const fileTaskLines = new Set<number>();
+				metadata.listItems?.forEach((item) => {
+					if (item.task !== undefined) {
+						fileTaskLines.add(item.position.start.line);
+					}
+				});
+
+				const content = await app.vault.cachedRead(file);
+				const blocks = parseBlocks(content, metadata, matcher, {
 					filterTableRows,
 				});
 
@@ -159,7 +175,7 @@ export class BlockView extends BasesView implements HoverParent {
 						);
 					});
 
-					const decoratedContent = this.decorateTaskLines(block.content, block.startLine);
+					const decoratedContent = this.decorateTaskLines(block.content, block.startLine, fileTaskLines);
 					await MarkdownRenderer.render(
 						app,
 						decoratedContent,
@@ -262,15 +278,18 @@ export class BlockView extends BasesView implements HoverParent {
 	/**
 	 * Adds hidden anchors to task lines with the line number in the markdown source.
 	 */
-	private decorateTaskLines(content: string, startLine: number): string {
+	private decorateTaskLines(content: string, startLine: number, fileTaskLines: Set<number>): string {
 		// quick check first to skip unnecessary splitting
 		if (!content.includes("[") || !content.includes("]")) return content;
+
 		return content
 			.split("\n")
-			.map((line, rel) => isTaskLine(line)
-				? `${line}<span class="bv-task-anchor" data-bv-line="${startLine + rel}"></span>`
-				: line
-			)
+			.map((line, rel) => {
+				const lineNumber = startLine + rel;
+				return fileTaskLines.has(lineNumber)
+					? `${line}<span class="bv-task-anchor" data-bv-line="${lineNumber}"></span>`
+					: line;
+			})
 			.join("\n");
 	}
 
@@ -301,15 +320,25 @@ export class BlockView extends BasesView implements HoverParent {
 	}
 
 	private async toggleTaskAtLine(file: TFile, line: number): Promise<void> {
+		const metadata = this.app.metadataCache.getFileCache(file);
+		const listItem = metadata?.listItems?.find(item => item.position.start.line === line);
+
+		if (!listItem || listItem.task === undefined) {
+			console.error("Could not find target task line in metadata");
+			return;
+		}
+
 		await this.app.vault.process(file, (content) => {
 			const lines = content.split("\n");
 			const current = lines[line];
-			if (!current || !isTaskLine(current)) {
-				console.error("Could not find target task line");
+			if (!current) {
+				console.error("Could not find target line in content");
 				return content;
 			}
 
-			lines[line] = toggleTaskLine(current);
+			lines[line] = current.replace(/\[([ xX])\]/, (match, status: string) => {
+				return status.toLowerCase() === "x" ? "[ ]" : "[x]";
+			});
 			return lines.join("\n");
 		});
 	}
