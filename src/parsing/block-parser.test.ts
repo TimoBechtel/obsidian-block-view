@@ -210,4 +210,29 @@ describe("extractBlocks", () => {
 		expect(blocksWithSentence.length).toBe(1);
 		expect(blocksWithSentence[0]).toBe(headingBlock);
 	});
+
+	test("includes block immediately after tagged line", () => {
+		const matcher = new TagMatcher(["#adjacent"]);
+		const blocks = parseBlocks(exampleNote, exampleMetadata, matcher);
+
+		const afterBlock = blocks.find((block) =>
+			block.content.includes("#adjacent") &&
+			block.content.includes("def adjacent_before()")
+		);
+		expect(afterBlock).toBeDefined();
+		expect(afterBlock?.content).toContain("#adjacent");
+		expect(afterBlock?.content).toContain("```python");
+		expect(afterBlock?.content).toContain("def adjacent_before():");
+		expect(afterBlock?.content).toContain("```");
+	});
+
+	test("does not include sections separated by empty line", async () => {
+		const matcher = new TagMatcher(["#adjacent"]);
+		const blocks = parseBlocks(exampleNote, exampleMetadata, matcher);
+
+		const separatedBlock = blocks.find((block) =>
+			block.content.includes("func separated()")
+		);
+		expect(separatedBlock).toBeUndefined();
+	});
 });

@@ -105,6 +105,22 @@ Paragraph with inline code `some code #log` in it.
 | Item 1   | Active      |
 | Item 2   | Pending     |
 
+## Adjacent Sections
+
+Tag before code block:
+#adjacent
+```python
+def adjacent_before():
+    pass
+```
+
+The code block after this paragraph should not be included (empty line):
+#adjacent
+
+```go
+func separated() {}
+```
+
 | Regular  | Table    |
 |----------|----------|
 | No tag   | Here     |

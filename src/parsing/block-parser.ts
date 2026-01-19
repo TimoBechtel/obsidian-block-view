@@ -302,15 +302,28 @@ class DefaultSectionParser extends SectionBlockParser {
 
 		if (!hasMatch) return null;
 
+		let endLine = section.position.end.line;
+		let lastSectionIndex = startIndex;
+
+		// check if the next section comes immediately after the current section, and include if so
+		const nextSection = sections[startIndex + 1];
+		if (nextSection && nextSection.type !== "yaml") {
+			const gap = nextSection.position.start.line - endLine;
+			if (gap === 1) {
+				endLine = nextSection.position.end.line;
+				lastSectionIndex = startIndex + 1;
+			}
+		}
+
 		return {
 			blocks: [{
 				content: lines
-					.slice(section.position.start.line, section.position.end.line + 1)
+					.slice(section.position.start.line, endLine + 1)
 					.join("\n"),
 				startLine: section.position.start.line,
-				endLine: section.position.end.line,
+				endLine,
 			}],
-			lastSectionIndex: startIndex,
+			lastSectionIndex,
 		};
 	}
 }

@@ -209,6 +209,36 @@
 					"offset": 1665
 				}
 			}
+		},
+		{
+			"tag": "#adjacent",
+			"position": {
+				"start": {
+					"line": 110,
+					"col": 0,
+					"offset": 1795
+				},
+				"end": {
+					"line": 110,
+					"col": 9,
+					"offset": 1804
+				}
+			}
+		},
+		{
+			"tag": "#adjacent",
+			"position": {
+				"start": {
+					"line": 117,
+					"col": 0,
+					"offset": 1925
+				},
+				"end": {
+					"line": 117,
+					"col": 9,
+					"offset": 1934
+				}
+			}
 		}
 	],
 	"headings": [
@@ -353,6 +383,22 @@
 					"line": 95,
 					"col": 9,
 					"offset": 1538
+				}
+			}
+		},
+		{
+			"heading": "Adjacent Sections",
+			"level": 2,
+			"position": {
+				"start": {
+					"line": 107,
+					"col": 0,
+					"offset": 1750
+				},
+				"end": {
+					"line": 107,
+					"col": 20,
+					"offset": 1770
 				}
 			}
 		}
@@ -824,7 +870,7 @@
 			}
 		},
 		{
-			"type": "table",
+			"type": "heading",
 			"position": {
 				"start": {
 					"line": 107,
@@ -832,9 +878,84 @@
 					"offset": 1750
 				},
 				"end": {
+					"line": 107,
+					"col": 20,
+					"offset": 1770
+				}
+			}
+		},
+		{
+			"type": "paragraph",
+			"position": {
+				"start": {
 					"line": 109,
+					"col": 0,
+					"offset": 1772
+				},
+				"end": {
+					"line": 110,
+					"col": 9,
+					"offset": 1804
+				}
+			}
+		},
+		{
+			"type": "code",
+			"position": {
+				"start": {
+					"line": 111,
+					"col": 0,
+					"offset": 1805
+				},
+				"end": {
+					"line": 114,
+					"col": 3,
+					"offset": 1850
+				}
+			}
+		},
+		{
+			"type": "paragraph",
+			"position": {
+				"start": {
+					"line": 116,
+					"col": 0,
+					"offset": 1852
+				},
+				"end": {
+					"line": 117,
+					"col": 9,
+					"offset": 1934
+				}
+			}
+		},
+		{
+			"type": "code",
+			"position": {
+				"start": {
+					"line": 119,
+					"col": 0,
+					"offset": 1936
+				},
+				"end": {
+					"line": 121,
+					"col": 3,
+					"offset": 1965
+				}
+			}
+		},
+		{
+			"type": "table",
+			"position": {
+				"start": {
+					"line": 123,
+					"col": 0,
+					"offset": 1967
+				},
+				"end": {
+					"line": 125,
 					"col": 23,
-					"offset": 1821
+					"offset": 2038
 				}
 			}
 		}
