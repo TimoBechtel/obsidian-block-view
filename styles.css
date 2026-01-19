@@ -1,3 +1,47 @@
+/* @settings
+
+name: Block View
+id: block-view
+settings:
+	-
+		id: block-view-blocks-indent
+		title: Block indent
+		description: Left indent for blocks container
+		type: variable-number-slider
+		default: 0.5
+		min: 0
+		max: 2
+		step: 0.05
+		format: rem
+	-
+		id: block-view-blocks-top-gap
+		title: Header spacing
+		description: Space between file header and blocks
+		type: variable-number-slider
+		default: 0.5
+		min: 0
+		max: 2
+		step: 0.05
+		format: rem
+	-
+		id: block-view-block-gap
+		title: Block spacing
+		description: Space between individual blocks
+		type: variable-number-slider
+		default: 0.5
+		min: 0
+		max: 2
+		step: 0.05
+		format: rem
+
+*/
+
+body {
+	--block-view-blocks-indent: 0.5rem;
+	--block-view-blocks-top-gap: 0.5rem;
+	--block-view-block-gap: 0.5rem;
+}
+
 .block-view-container {
 	padding: 0.5rem;
 	user-select: text;
@@ -16,7 +60,7 @@
 }
 
 .block-view-file {
-	margin-bottom: 1rem;
+	margin-bottom: 0;
 }
 
 .block-view-file-header {
@@ -42,12 +86,12 @@
 }
 
 .block-view-blocks {
-	margin-left: 0.5rem;
-	margin-top: 0.5rem;
+	margin-left: var(--block-view-blocks-indent);
+	margin-top: var(--block-view-blocks-top-gap);
 }
 
 .block-view-block {
-	margin-bottom: 0.65rem;
+	margin-bottom: var(--block-view-block-gap);
 	padding: 0.3rem 0.5rem;
 	border-left: var(--border-width) solid var(--background-modifier-border);
 	padding-left: 0.75rem;
