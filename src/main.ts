@@ -82,17 +82,16 @@ export default class BlockViewPlugin extends Plugin {
 					displayName: "Display options",
 					items: [
 						{
-							type: "toggle",
-							displayName: "Show file names",
-							key: "showFileNames",
-							default: true,
+							type: "text",
+							displayName: "Property separator",
+							key: "separator",
+							default: "|",
 						},
 						{
 							type: "toggle",
 							displayName: "Show files without matches",
 							key: "showFilesWithoutMatches",
 							default: false,
-							shouldHide: (config) => !config.get("showFileNames"),
 						},
 						{
 							type: "toggle",

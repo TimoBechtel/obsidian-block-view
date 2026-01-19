@@ -19,21 +19,31 @@
 	margin-bottom: 1rem;
 }
 
-.block-view-file-link {
-	font-weight: var(--font-semibold);
-	color: var(--link-color);
-	text-decoration: none;
-	cursor: pointer;
-	margin-bottom: 0.5rem;
-	display: block;
+.block-view-file-header {
+	display: flex;
+	align-items: center;
+	gap: 0.75em;
+	color: var(--text-muted);
+	font-size: var(--font-ui-small);
+	/* don't want to add margin or padding here to avoid gaps with empty properties */
 }
 
-.block-view-file-link:hover {
-	text-decoration: underline;
+.block-view-file-link {
+	text-decoration: none;
+}
+
+.block-view-property-value {
+	color: var(--text-normal);
+}
+
+.block-view-separator {
+	color: var(--text-faint);
+	user-select: none;
 }
 
 .block-view-blocks {
 	margin-left: 0.5rem;
+	margin-top: 0.5rem;
 }
 
 .block-view-block {

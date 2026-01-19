@@ -2,6 +2,7 @@ import {
 	BasesView,
 	Keymap,
 	MarkdownRenderer,
+	parsePropertyId,
 	type HoverParent,
 	type HoverPopover,
 	type QueryController,
@@ -55,9 +56,9 @@ export class BlockView extends BasesView implements HoverParent {
 		}
 
 		const showAllFiles = this.config.get("showAllFiles") as boolean;
-		const showFileNames = this.config.get("showFileNames") as boolean;
 		const showFilesWithoutMatches = this.config.get("showFilesWithoutMatches") as boolean;
 		const filterTableRows = this.config.get("filterTableRows") as boolean;
+		const propertySeparator = String(this.config.get('separator') as string ?? '|');
 
 		const matchers: LineMatcher[] = [
 			...(filterTasks ? [new TaskMatcher(filterTasksType)] : []),
@@ -122,12 +123,45 @@ export class BlockView extends BasesView implements HoverParent {
 
 				const fileEl = groupEl.createDiv("block-view-file");
 
-				if (showFileNames) {
-					fileEl.createEl("a", {
-						text: file.name,
-						cls: "block-view-file-link internal-link",
-						href: file.path,
-					});
+
+				const selectedProperties = this.config.getOrder();
+
+				if (selectedProperties.length > 0) {
+					const headerEl = fileEl.createSpan("block-view-file-header");
+					let firstProp = true;
+
+					for (const propertyId of selectedProperties) {
+						const { type, name } = parsePropertyId(propertyId);
+
+						if (!firstProp) {
+							headerEl.createSpan({
+								cls: "block-view-separator",
+								text: propertySeparator
+							});
+						}
+						firstProp = false;
+
+						if (name === 'name' && type === 'file') {
+							headerEl.createEl("a", {
+								text: file.name,
+								cls: "block-view-file-link internal-link",
+								href: file.path,
+							});
+							continue;
+						}
+
+						const value = entry.getValue(propertyId);
+						if (!value) continue;
+
+						const valueEl = headerEl.createSpan("block-view-property-value");
+						try {
+							value.renderTo(valueEl, {
+								hoverPopover: this.hoverPopover,
+							});
+						} catch {
+							valueEl.textContent = value.toString();
+						}
+					}
 				}
 
 				this.setupInternalLinkHandlers(fileEl, file.path);
