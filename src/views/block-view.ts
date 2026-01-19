@@ -9,6 +9,7 @@ import {
 } from "obsidian";
 import { parseBlocks } from "../parsing/block-parser";
 import { AndMatcher, CodeBlockMatcher, OrMatcher, QuoteMatcher, RegexMatcher, TagMatcher, TaskMatcher, type LineMatcher } from "../parsing/matchers";
+import { isTaskLine, toggleTaskLine } from "../parsing/markdown-utils";
 
 export const BlockViewType = "block-view" as const;
 
@@ -291,13 +292,9 @@ export class BlockView extends BasesView implements HoverParent {
 
 			for (let i = block.startLine; i <= block.endLine; i++) {
 				const line = lines[i];
-				if (line && /^\s*- \[[ xX]\]/.test(line)) {
+				if (line && isTaskLine(line)) {
 					if (taskCount === checkboxIndex) {
-						lines[i] = line.replace(
-							/^(\s*- \[)([ xX])(\].*)$/,
-							(_, prefix, status: string, suffix: string) =>
-								`${prefix}${status.toLowerCase() === "x" ? " " : "x"}${suffix}`
-						);
+						lines[i] = toggleTaskLine(line);
 						return lines.join("\n");
 					}
 					taskCount++;

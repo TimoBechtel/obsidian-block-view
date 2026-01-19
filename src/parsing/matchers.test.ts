@@ -94,6 +94,39 @@ describe("TaskMatcher", () => {
 		expect(matcher.matches("This has - [ ] in the middle")).toBe(false);
 		expect(matcher.matches("Not a task - [x] here")).toBe(false);
 	});
+
+	test("matches tasks with numbered parenthesis marker", () => {
+		const matcher = new TaskMatcher("any");
+		expect(matcher.matches("1) [ ] task")).toBe(true);
+		expect(matcher.matches("99) [x] task")).toBe(true);
+		expect(matcher.matches("  42) [ ] indented")).toBe(true);
+	});
+
+	test("does not match unsupported markers", () => {
+		const matcher = new TaskMatcher("any");
+		expect(matcher.matches("* [ ] task")).toBe(false);
+		expect(matcher.matches("+ [ ] task")).toBe(false);
+		expect(matcher.matches("1. [ ] task")).toBe(false);
+	});
+
+	test("matches tasks in blockquotes", () => {
+		const matcher = new TaskMatcher("any");
+		expect(matcher.matches("> - [ ] task in quote")).toBe(true);
+		expect(matcher.matches("> 1) [x] task in callout")).toBe(true);
+		expect(matcher.matches("> > - [x] nested quote")).toBe(true);
+	});
+
+	test("incomplete/complete filters work with supported markers", () => {
+		const incomplete = new TaskMatcher("incomplete");
+		const complete = new TaskMatcher("complete");
+
+		expect(incomplete.matches("- [ ] task")).toBe(true);
+		expect(incomplete.matches("- [x] task")).toBe(false);
+		expect(complete.matches("1) [ ] task")).toBe(false);
+		expect(complete.matches("1) [x] task")).toBe(true);
+		expect(incomplete.matches("> - [ ] quote task")).toBe(true);
+		expect(complete.matches("> 1) [x] quote task")).toBe(true);
+	});
 });
 
 describe("QuoteMatcher", () => {

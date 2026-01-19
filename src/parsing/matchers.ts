@@ -1,3 +1,5 @@
+import { isTaskLine } from "./markdown-utils";
+
 export interface LineMatcher {
 	matches(line: string): boolean;
 }
@@ -58,17 +60,22 @@ export class OrMatcher implements LineMatcher {
 	}
 }
 
+
+
 export class TaskMatcher implements LineMatcher {
 	constructor(private type: "any" | "incomplete" | "complete") { }
 
 	matches(line: string): boolean {
 		const trimmed = line.trim();
-		if (trimmed.startsWith("- [ ]")) {
-			return this.type === "any" || this.type === "incomplete";
+		if (!isTaskLine(trimmed)) {
+			return false;
 		}
-		if (trimmed.startsWith("- [x]")) {
-			return this.type === "any" || this.type === "complete";
-		}
+
+		const isComplete = /\[[xX]\]/.test(trimmed);
+
+		if (this.type === "any") return true;
+		if (this.type === "incomplete") return !isComplete;
+		if (this.type === "complete") return isComplete;
 		return false;
 	}
 }

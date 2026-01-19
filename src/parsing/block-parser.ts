@@ -116,7 +116,8 @@ class ListBlockParser extends SectionBlockParser {
 		return (
 			trimmed.startsWith("-")
 			|| trimmed.startsWith("*")
-			|| /^\s*\d+\./.test(line)
+			|| trimmed.startsWith("+")
+			|| /^\d+[.)]/.test(line)
 		);
 	}
 
