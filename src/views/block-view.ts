@@ -214,7 +214,7 @@ export class BlockView extends BasesView implements HoverParent {
 					const decoratedContent = this.decorateTaskLines(block.content, block.startLine, fileTaskLines);
 					await MarkdownRenderer.render(
 						app,
-						decoratedContent,
+						decoratedContent.trimStart(), // remove leading spaces to prevent rendering issues for indented blocks
 						blockEl,
 						file.path,
 						this
