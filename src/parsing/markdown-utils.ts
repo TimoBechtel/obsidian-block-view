@@ -4,17 +4,19 @@
  * It supports the following task markers:
  * - [ ]
  * - 1) [ ]
- * - 1. [ ]
- * - * [ ]
- * - + [ ]
  * 
  * As well as nested task markers:
  * > - [ ]
  * > 1) [x]
  * > > - [x]
  * 
+ * The following markers are not supported (by MarkdownRenderer) and will not be matched:
+ * - * [ ]
+ * - + [ ]
+ * - 1. [ ]
+ * 
  */
-const TASK_TOGGLE_REGEX = /^(\s*[>\s]*[-*+\d.)]+\s+\[)([ xX])(\].*)$/;
+const TASK_TOGGLE_REGEX = /^(\s*[>\s]*(?:-|\d+\))\s+\[)([ xX])(\].*)$/;
 
 export function isTaskLine(line: string): boolean {
 	// quick check first to prevent unnecessary regex execution
