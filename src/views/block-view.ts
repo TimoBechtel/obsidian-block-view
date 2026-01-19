@@ -27,14 +27,14 @@ export class BlockView extends BasesView implements HoverParent {
 	private async render() {
 		const { app } = this;
 
-		const filterTasks = this.config.get("filterTasks") as boolean;
-		const filterTasksType = this.config.get("filterTasksType") as "any" | "incomplete" | "complete";
-		const filterQuotes = this.config.get("filterQuotes") as boolean;
-		const filterCodeBlocks = this.config.get("filterCodeBlocks") as boolean;
-		const filterCodeBlocksLanguage = this.config.get("filterCodeBlocksLanguage") as string;
-		const tagFilter = this.config.get("tagFilter") as string[];
-		const regexPattern = this.config.get("regexPattern") as string;
-		const matchLogic = this.config.get("matchLogic") as "any" | "all";
+		const filterTasks = !!this.config.get("filterTasks");
+		const filterTasksType = (this.config.get("filterTasksType") as "any" | "incomplete" | "complete" ?? "any");
+		const filterQuotes = !!this.config.get("filterQuotes");
+		const filterCodeBlocks = !!this.config.get("filterCodeBlocks");
+		const filterCodeBlocksLanguage = String(this.config.get("filterCodeBlocksLanguage") as string ?? "");
+		const tagFilter = this.config.get("tagFilter") as string[] ?? [];
+		const regexPattern = String(this.config.get("regexPattern") as string ?? "");
+		const matchLogic = (this.config.get("matchLogic") as "any" | "all" ?? "any");
 
 		this.containerEl.empty();
 
@@ -55,9 +55,9 @@ export class BlockView extends BasesView implements HoverParent {
 			return;
 		}
 
-		const showAllFiles = this.config.get("showAllFiles") as boolean;
-		const showFilesWithoutMatches = this.config.get("showFilesWithoutMatches") as boolean;
-		const filterTableRows = this.config.get("filterTableRows") as boolean;
+		const showAllFiles = !!this.config.get("showAllFiles");
+		const showFilesWithoutMatches = !!this.config.get("showFilesWithoutMatches");
+		const filterTableRows = !!this.config.get("filterTableRows");
 		const propertySeparator = String(this.config.get('separator') as string ?? '|');
 
 		const matchers: LineMatcher[] = [

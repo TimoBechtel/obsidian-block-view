@@ -70,16 +70,14 @@ export class OrMatcher implements LineMatcher {
 	}
 }
 
-
-
 export class TaskMatcher implements LineMatcher {
 	constructor(private type: "any" | "incomplete" | "complete") { }
 
 	matches({ cache, lineNumber }: MatchContext): boolean {
 		const listItem = cache.listItems?.find(item =>
-			item.position.start.line === lineNumber
+			item.position.start.line === lineNumber && item.task !== undefined
 		);
-		if (!listItem || listItem.task === undefined) return false;
+		if (!listItem) return false;
 		if (this.type === "any") return true;
 		if (this.type === "incomplete") return listItem.task === " ";
 		if (this.type === "complete") return listItem.task !== " ";
