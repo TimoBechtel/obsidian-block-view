@@ -2,7 +2,7 @@
 	"id": "block-view",
 	"name": "Block View",
 	"version": "1.0.0",
-	"minAppVersion": "0.15.0",
+	"minAppVersion": "1.10.6",
 	"description": "Displays blocks of notes in a bases view",
 	"author": "Timo Bechtel",
 	"authorUrl": "https://timobechtel.com",
