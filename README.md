@@ -1,90 +1,183 @@
-# Obsidian Sample Plugin
+<h1 align="center">Obsidian Block View</h1>
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+<p align="center">
+  <img src="https://img.shields.io/badge/status-beta-yellow?style=flat-square" alt="Status" />
+  <img src="https://img.shields.io/badge/obsidian-plugin-purple?style=flat-square" alt="Obsidian Plugin" />
+</p>
 
-This project uses TypeScript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in TypeScript Definition format, which contains TSDoc comments describing what it does.
+<p align="center">
+  <b>A Obsidian Bases view that turns your notes into a database of blocks.</b>
+</p>
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open modal (simple)" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
+---
 
-## First time developing plugins?
+## What is Block View?
 
-Quick starting guide for new plugin devs:
+Block View is an extension for the Bases core plugin that allows you to list and filter specific sections of your notes - *"blocks"* - across your entire vault.
 
-- Check if [someone already developed a plugin for what you want](https://obsidian.md/plugins)! There might be an existing plugin similar enough that you can partner up with.
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `bun install` in the command line under your repo folder.
-- Run `bun run dev` to compile your plugin from `main.ts` to `main.js`.
-- Make changes to `main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `bun update` in the command line under your repo folder.
+![Screenshot of the main Block View interface]
 
-## Releasing new releases
+For example, you could use it to resurface specifically tagged bullet points in your daily notes every week. Or have a library of quotes from anywhere in your vault.
 
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
-- Publish the release.
+And because it works as a Bases view, you can still use all the standard features like file filtering, sorting and grouping. It then divides each files's content into blocks, allowing you to filter and display specific sections from multiple notes in the same view.
 
-> You can simplify the version bump process by running `bun version patch`, `bun version minor` or `bun version major` after updating `minAppVersion` manually in `manifest.json`.
-> The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
+Still not sure what this is? Let's look at some examples.
 
-## Adding your plugin to the community plugin list
+## Examples
 
-- Check the [plugin guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines).
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
+### 1. Daily Logs
 
-## How to use
+Review your work history by listing every paragraph tagged with `#log` from your daily notes in a single timeline, without opening each file individually.
 
-- Clone this repo.
-- Make sure your NodeJS is at least v16 (`node --version`).
-- `bun install` to install dependencies.
-- `bun run dev` to start compilation in watch mode.
+![Screenshot of daily logs example]
 
-## Manually installing the plugin
+<details>
+<summary><b>Show Bases Snippet</b></summary>
 
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
+````markdown
+```base
+views:
+  - type: block-view
+    name: "Work Logs"
+    filters:
+      and:
+        - file.folder.startsWith("Daily Notes")
+    sort:
+      - property: file.name
+        direction: DESC
+    tagFilter: ["#log"]
+```
+````
 
-## Improve code quality with eslint
-- [ESLint](https://eslint.org/) is a tool that analyzes your code to quickly find problems. You can run ESLint against your plugin to find common bugs and ways to improve your code. 
-- This project already has eslint preconfigured, you can invoke a check by running`bun run lint`
-- Together with a custom eslint [plugin](https://github.com/obsidianmd/eslint-plugin) for Obsidan specific code guidelines.
-- A GitHub action is preconfigured to automatically lint every commit on all branches.
+</details>
 
-## Funding URL
+### 2. Project Tasks
 
-You can include funding URLs where people who use your plugin can financially support it.
+Collect all incomplete tasks from your project folders in a single list. You can group them by project and check them off directly in the view, without opening the corresponding note.
 
-The simple way is to set the `fundingUrl` field to your link in your `manifest.json` file:
+![Screenshot of project tasks example]
 
-```json
-{
-    "fundingUrl": "https://buymeacoffee.com"
-}
+<details>
+<summary><b>Show Bases Snippet</b></summary>
+
+````markdown
+```base
+views:
+  - type: block-view
+    name: "Active Tasks"
+    group:
+      - property: file.folder
+    filterTasks: true
+    filterTasksType: incomplete
+```
+````
+
+</details>
+
+### 3. Code Snippets
+
+Build a searchable library of your code snippets. This example collects every `python` code block scattered across your vault into one reference list.
+
+![Screenshot of code snippets example]
+
+<details>
+<summary><b>Show Bases Snippet</b></summary>
+
+````markdown
+```base
+views:
+  - type: block-view
+    name: "Python Library"
+    filterCodeBlocks: true
+    filterCodeBlocksLanguage: python
+```
+````
+
+</details>
+
+### 4. Quotes and Highlights
+
+Surface key information from your reading notes. This collects every blockquote tagged `#inspiration` so you can review all your favorite passages at once.
+
+![Screenshot of quotes example]
+
+<details>
+<summary><b>Show Bases Snippet</b></summary>
+
+````markdown
+```base
+views:
+  - type: block-view
+    name: "Highlights"
+    filterQuotes: true
+    tagFilter: ["#inspiration"]
+    matchLogic: all
+```
+````
+
+</details>
+
+
+## Context Matching
+
+Block View uses the Markdown structure to determine what content belongs to a match.
+
+* **Headers:** If a header matches the filter, the view includes the content of that section up to the next header of the same level.
+* **Lists:** If a list item matches, it includes all nested children items and continuation paragraphs.
+* **Tables:** You can choose to show the whole table if one cell matches or filter down to specific rows.
+* **Code:** It respects code block fences.
+
+## View Options
+
+You can configure these settings via the view options panel in the Bases view.
+
+| Option | Description |
+| :--- | :--- |
+| **Tasks** | Toggle to show task items (`- [ ]`). |
+| **Show** | If tasks are enabled, choose `Any`, `Incomplete`, or `Complete`. |
+| **Quotes** | Toggle to show Blockquotes (`> text`) and Callouts. |
+| **Code Blocks** | Toggle to show code blocks. |
+| **Language** | Filter code blocks by language (e.g., `js`, `python`). |
+| **Include tags** | A list of tags to filter by. Supports nested tags. |
+| **Include if** | `Any` (match at least one filter) or `All` (must match all active filters). |
+| **Regex pattern** | Advanced: specify a custom Regex pattern to match lines. |
+| **Display Options** | Customize table dividers, hide empty files, or strip non-matching table rows. |
+
+## Installation
+
+### Via BRAT (Beta)
+
+This plugin is currently in Beta and not yet available in the official Community Plugins list. You can install it using **BRAT**:
+
+1. Install **BRAT** from the Community Plugins store.
+2. Open the command palette and run `BRAT: Add a beta plugin for testing`.
+3. Enter the URL: `https://github.com/timobechtel/obsidian-block-view`
+4. Enable "Block View" in your settings.
+
+## Contributing
+
+### Development
+
+This project uses [bun](https://bun.sh/) as a package manager & bundler.
+
+If you don't have bun installed, run:
+
+```bash
+curl -fsSL https://bun.sh/install | bash
 ```
 
-If you have multiple URLs, you can also do:
+#### Install dependencies
 
-```json
-{
-    "fundingUrl": {
-        "Buy Me a Coffee": "https://buymeacoffee.com",
-        "GitHub Sponsor": "https://github.com/sponsors",
-        "Patreon": "https://www.patreon.com/"
-    }
-}
+```bash
+bun install
 ```
 
-## API Documentation
+#### Build
 
-See https://docs.obsidian.md
+```bash
+bun run build
+```
+
+### Commit messages
+
+This project follows the [Conventional Commits](https://www.conventionalcommits.org/) guidelines. I recommend using [commitizen](https://github.com/commitizen/cz-cli) for automated commit messages.
