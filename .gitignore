@@ -2,6 +2,9 @@
 .vscode/*
 !.vscode/settings.json
 
+.cursor/*
+!.cursor/rules/*
+
 # Intellij
 *.iml
 .idea
