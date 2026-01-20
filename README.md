@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-  <b>A Obsidian Bases view that turns your notes into a database of blocks.</b>
+  <b>An Obsidian Bases view that turns your notes into a database of blocks.</b>
 </p>
 
 ---

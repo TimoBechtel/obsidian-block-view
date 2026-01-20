@@ -1,7 +1,7 @@
 {
 	"name": "obsidian-block-view",
 	"version": "1.0.0",
-	"description": "A Obsidian Bases view that turns your notes into a database of blocks.",
+	"description": "An Obsidian Bases view that turns your notes into a database of blocks.",
 	"main": "main.js",
 	"type": "module",
 	"scripts": {

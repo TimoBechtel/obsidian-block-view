@@ -3,7 +3,7 @@
 	"name": "Block View",
 	"version": "1.0.0",
 	"minAppVersion": "1.10.6",
-	"description": "A Bases view that turns your notes into a database of blocks.",
+	"description": "Filter and display the content of your notes in a Bases view.",
 	"author": "Timo Bechtel",
 	"authorUrl": "https://timobechtel.com",
 	"isDesktopOnly": false
