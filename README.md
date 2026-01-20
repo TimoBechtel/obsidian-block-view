@@ -15,7 +15,7 @@
 
 Block View is an extension for the Bases core plugin that allows you to list and filter specific sections of your notes - *"blocks"* - across your entire vault.
 
-![Screenshot of the main Block View interface]
+![./docs/assets/obsidian-block-view.gif]
 
 For example, you could use it to resurface specifically tagged bullet points in your daily notes every week. Or have a library of quotes from anywhere in your vault.
 
@@ -27,9 +27,9 @@ Still not sure what this is? Let's look at some examples.
 
 ### 1. Daily Logs
 
-Review your work history by listing every paragraph tagged with `#log` from your daily notes in a single timeline, without opening each file individually.
+Review your work history by listing every paragraph tagged with `#log` or `#work` from your daily notes in a single timeline, without opening each file individually.
 
-![Screenshot of daily logs example]
+![./docs/assets/work-log.jpeg]
 
 <details>
 <summary><b>Show Bases Snippet</b></summary>
@@ -38,14 +38,18 @@ Review your work history by listing every paragraph tagged with `#log` from your
 ```base
 views:
   - type: block-view
-    name: "Work Logs"
+    name: Blocks
     filters:
       and:
-        - file.folder.startsWith("Daily Notes")
+        - file.folder == "Daily Notes"
+    order:
+      - file.name
     sort:
-      - property: file.name
+      - property: file.mtime
         direction: DESC
-    tagFilter: ["#log"]
+    tagFilter:
+      - log
+      - work
 ```
 ````
 
@@ -55,7 +59,7 @@ views:
 
 Collect all incomplete tasks from your project folders in a single list. You can group them by project and check them off directly in the view, without opening the corresponding note.
 
-![Screenshot of project tasks example]
+![./docs/assets/tasks.jpeg]
 
 <details>
 <summary><b>Show Bases Snippet</b></summary>
@@ -78,7 +82,7 @@ views:
 
 Build a searchable library of your code snippets. This example collects every `python` code block scattered across your vault into one reference list.
 
-![Screenshot of code snippets example]
+![./docs/assets/code-snippets.jpeg]
 
 <details>
 <summary><b>Show Bases Snippet</b></summary>
@@ -90,6 +94,14 @@ views:
     name: "Python Library"
     filterCodeBlocks: true
     filterCodeBlocksLanguage: python
+	groupBy:
+      property: file.folder
+      direction: ASC
+    order:
+      - file.name
+    sort:
+      - property: file.mtime
+        direction: DESC
 ```
 ````
 
@@ -97,9 +109,9 @@ views:
 
 ### 4. Quotes and Highlights
 
-Surface key information from your reading notes. This collects every blockquote tagged `#inspiration` so you can review all your favorite passages at once.
+Surface key information from your notes. This collects every blockquote tagged `#insight` so you can review all your insights in one place.
 
-![Screenshot of quotes example]
+![./docs/assets/quotes.jpeg]
 
 <details>
 <summary><b>Show Bases Snippet</b></summary>
@@ -110,7 +122,8 @@ views:
   - type: block-view
     name: "Highlights"
     filterQuotes: true
-    tagFilter: ["#inspiration"]
+    tagFilter:
+      - insight
     matchLogic: all
 ```
 ````
