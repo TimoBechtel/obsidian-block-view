@@ -5,7 +5,7 @@ export default class BlockViewPlugin extends Plugin {
 	async onload() {
 		this.registerBasesView(BlockViewType, {
 			name: "Blocks",
-			icon: "lucide-file-text",
+			icon: "lucide-blocks",
 			factory: (controller, containerEl) => {
 				return new BlockView(controller, containerEl);
 			},
@@ -99,21 +99,21 @@ export default class BlockViewPlugin extends Plugin {
 							key: "showAllFiles",
 							default: false,
 						},
-					{
-						type: "toggle",
-						displayName: "Only include matching table rows",
-						key: "filterTableRows",
-						default: false,
-					},
-					{
-						type: "text",
-						displayName: "Max blocks per file",
-						key: "maxBlocksPerFile",
-						default: "0",
-						placeholder: "0 = unlimited",
-					},
-				],
-			},
+						{
+							type: "toggle",
+							displayName: "Only include matching table rows",
+							key: "filterTableRows",
+							default: false,
+						},
+						{
+							type: "text",
+							displayName: "Max blocks per file",
+							key: "maxBlocksPerFile",
+							default: "0",
+							placeholder: "0 = unlimited",
+						},
+					],
+				},
 			],
 		});
 	}
