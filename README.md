@@ -158,11 +158,11 @@ You can configure these settings via the view options panel in the Bases view.
 
 ## Installation
 
-### Via BRAT (Beta)
+### Via [BRAT](https://obsidian.md/plugins?id=obsidian42-brat) (Beta)
 
 This plugin is currently in Beta and not yet available in the official Community Plugins list. You can install it using **BRAT**:
 
-1. Install **BRAT** from the Community Plugins store.
+1. Install **[BRAT](https://obsidian.md/plugins?id=obsidian42-brat)** from the Community Plugins store.
 2. Open the command palette and run `BRAT: Add a beta plugin for testing`.
 3. Enter the URL: `https://github.com/timobechtel/obsidian-block-view`
 4. Enable "Block View" in your settings.
