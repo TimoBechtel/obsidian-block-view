@@ -15,7 +15,7 @@
 
 Block View is an extension for the Bases core plugin that allows you to list and filter specific sections of your notes - *"blocks"* - across your entire vault.
 
-![./docs/assets/obsidian-block-view.gif]
+![Block View Demo](https://raw.githubusercontent.com/TimoBechtel/obsidian-block-view/main/docs/assets/obsidian-block-view.gif)
 
 For example, you could use it to resurface specifically tagged bullet points in your daily notes every week. Or have a library of quotes from anywhere in your vault.
 
@@ -29,7 +29,7 @@ Still not sure what this is? Let's look at some examples.
 
 Review your work history by listing every paragraph tagged with `#log` or `#work` from your daily notes in a single timeline, without opening each file individually.
 
-![./docs/assets/work-log.jpeg]
+![Work Log Screenshot](https://raw.githubusercontent.com/TimoBechtel/obsidian-block-view/main/docs/assets/work-log.jpeg)
 
 <details>
 <summary><b>Show Bases Snippet</b></summary>
@@ -59,7 +59,7 @@ views:
 
 Collect all incomplete tasks from your project folders in a single list. You can group them by project and check them off directly in the view, without opening the corresponding note.
 
-![./docs/assets/tasks.jpeg]
+![Project Tasks Screenshot](https://raw.githubusercontent.com/TimoBechtel/obsidian-block-view/main/docs/assets/tasks.jpeg)
 
 <details>
 <summary><b>Show Bases Snippet</b></summary>
@@ -82,7 +82,7 @@ views:
 
 Build a searchable library of your code snippets. This example collects every `python` code block scattered across your vault into one reference list.
 
-![./docs/assets/code-snippets.jpeg]
+![Code Snippets Screenshot](https://raw.githubusercontent.com/TimoBechtel/obsidian-block-view/main/docs/assets/code-snippets.jpeg)
 
 <details>
 <summary><b>Show Bases Snippet</b></summary>
@@ -111,7 +111,7 @@ views:
 
 Surface key information from your notes. This collects every blockquote tagged `#insight` so you can review all your insights in one place.
 
-![./docs/assets/quotes.jpeg]
+![Quotes Screenshot](https://raw.githubusercontent.com/TimoBechtel/obsidian-block-view/main/docs/assets/quotes.jpeg)
 
 <details>
 <summary><b>Show Bases Snippet</b></summary>
