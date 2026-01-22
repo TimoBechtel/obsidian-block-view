@@ -9,18 +9,34 @@ import {
 	type HoverPopover,
 	type QueryController
 } from "obsidian";
-import { parseBlocks } from "../parsing/block-parser";
+import { parseBlocks, type ParsedBlock } from "../parsing/block-parser";
 import { AndMatcher, CodeBlockMatcher, OrMatcher, QuoteMatcher, RegexMatcher, TagMatcher, TaskMatcher, type LineMatcher } from "../parsing/matchers";
 import { debounceLeading } from "../utils/debounce";
 
 export const BlockViewType = "block-view" as const;
 
+type BlockRenderInfo = {
+	file: TFile;
+	block: ParsedBlock;
+	fileTaskLines: Set<number>;
+};
+
 export class BlockView extends BasesView implements HoverParent {
 	readonly type = BlockViewType;
 	private containerEl: HTMLElement;
+	private intersectionObserver: IntersectionObserver;
+
 	private debouncedRender = debounceLeading(() => {
 		void this.render();
 	}, 200);
+
+	private pendingRenders = new Map<HTMLElement, BlockRenderInfo>();
+
+	/**
+	 * Visible blocks are rendered eagerly, but invisible blocks are lazy loaded on scroll.
+	 * This avoids flashing content. 
+	 */
+	private shouldLazyLoad = false;
 
 	hoverPopover: HoverPopover | null;
 
@@ -38,18 +54,44 @@ export class BlockView extends BasesView implements HoverParent {
 		this.registerDomEvent(this.containerEl, "mouseover", (evt) => {
 			this.handleContainerMouseOver(evt);
 		});
+
+		this.intersectionObserver = new IntersectionObserver(
+			(entries) => this.handleIntersection(entries),
+			{
+				root: parentEl,
+				rootMargin: "200px",
+				threshold: 0.01,
+			}
+		);
+
+		this.register(() => {
+			this.intersectionObserver.disconnect();
+		});
 	}
 
 	private async render() {
 		const context = this.getRenderContext();
+		const currentHeight = this.containerEl.offsetHeight;
+		if (currentHeight > 0) {
+			// avoid scroll reset 
+			this.containerEl.setCssStyles({ minHeight: `${currentHeight}px` });
+		}
+
 		this.containerEl.empty();
+		this.pendingRenders.clear();
+		this.shouldLazyLoad = false;
+
+		this.intersectionObserver.disconnect();
+
 
 		if (!context.hasActiveFilters) {
-			this.renderPlaceholder();
+			this.renderEmptyPlaceholder();
+			this.containerEl.setCssStyles({ minHeight: "" });
 			return;
 		}
 
 		await this.renderGroups(context);
+		this.containerEl.setCssStyles({ minHeight: "" });
 	}
 
 	private async renderGroups(context: ReturnType<typeof this.getRenderContext>) {
@@ -325,15 +367,57 @@ export class BlockView extends BasesView implements HoverParent {
 		return false;
 	}
 
-	private renderPlaceholder() {
-		const placeholderEl = this.containerEl.createDiv("block-view-placeholder");
+
+	private handleIntersection(entries: IntersectionObserverEntry[]) {
+		for (const entry of entries) {
+			if (entry.isIntersecting) {
+				const placeholder = entry.target as HTMLElement;
+				if (this.pendingRenders.has(placeholder)) {
+					void this.populatePlaceholder(placeholder);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Renders the block markdown to the DOM
+	 */
+	private async populatePlaceholder(placeholder: HTMLElement) {
+		const renderInfo = this.pendingRenders.get(placeholder);
+		if (!renderInfo) return;
+
+		this.pendingRenders.delete(placeholder);
+		this.intersectionObserver.unobserve(placeholder);
+
+		const { file, block, fileTaskLines } = renderInfo;
+
+		placeholder.classList.remove("block-view-block-placeholder");
+		placeholder.setCssStyles({ minHeight: "" });
+
+		const decoratedContent = this.decorateTaskLines(
+			block.content,
+			block.startLine,
+			fileTaskLines
+		);
+
+		await MarkdownRenderer.render(
+			this.app,
+			decoratedContent.trimStart(),
+			placeholder,
+			file.path,
+			this
+		);
+	}
+
+	private renderEmptyPlaceholder() {
+		const placeholderEl = this.containerEl.createDiv("block-view-empty-placeholder");
 		placeholderEl.createEl("p", {
 			text: "No filters enabled",
-			cls: "block-view-placeholder-title",
+			cls: "block-view-empty-placeholder-title",
 		});
 		placeholderEl.createEl("p", {
 			text: "Enable at least one filter in the view options",
-			cls: "block-view-placeholder-subtitle",
+			cls: "block-view-empty-placeholder-subtitle",
 		});
 	}
 
@@ -402,9 +486,6 @@ export class BlockView extends BasesView implements HoverParent {
 			for (const propertyId of selectedProperties) {
 				const { type, name } = parsePropertyId(propertyId);
 
-
-
-
 				if (name === "name" && type === "file") {
 					headerEl.createEl("a", {
 						text: file.name,
@@ -441,19 +522,38 @@ export class BlockView extends BasesView implements HoverParent {
 		for (const block of blocks) {
 			const blockEl = blocksEl.createDiv(
 				// markdown-preview-view markdown-rendered - are the internal obsidian classes so that it looks like normal markdown
-				"block-view-block markdown-preview-view markdown-rendered"
+				"block-view-block markdown-preview-view markdown-rendered block-view-block-placeholder"
 			);
 			blockEl.dataset.filePath = file.path;
 			blockEl.dataset.startLine = String(block.startLine);
 
-			const decoratedContent = this.decorateTaskLines(block.content, block.startLine, fileTaskLines);
-			await MarkdownRenderer.render(
-				this.app,
-				decoratedContent.trimStart(), // remove leading spaces to prevent rendering issues for indented blocks
-				blockEl,
-				file.path,
-				this
-			);
+
+			// we estimate the height based on line count
+			const lineCount = block.endLine - block.startLine + 1;
+			const estimatedHeight = Math.max(3, lineCount * 1.5);
+			blockEl.style.minHeight = `${estimatedHeight}rem`;
+
+			this.pendingRenders.set(blockEl, {
+				file,
+				block,
+				fileTaskLines,
+			});
+
+			// we first fill up the visible (+ previously rendered) blocks eagerly to avoid flashing content
+			if (!this.shouldLazyLoad) {
+				const blockRect = blockEl.getBoundingClientRect();
+				const viewportBottom = window.innerHeight;
+
+				if (blockRect.top > viewportBottom) {
+					this.shouldLazyLoad = true;
+				}
+			}
+
+			if (this.shouldLazyLoad) {
+				this.intersectionObserver.observe(blockEl);
+			} else {
+				void this.populatePlaceholder(blockEl);
+			}
 		}
 	}
 }

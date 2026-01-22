@@ -1,7 +1,7 @@
 import type { CachedMetadata, ListItemCache, SectionCache } from "obsidian";
 import type { LineMatcher } from "./matchers";
 
-type Block = {
+export type ParsedBlock = {
 	content: string;
 	startLine: number;
 	endLine: number;
@@ -16,7 +16,7 @@ type ExtractOptions = {
 
 abstract class SectionBlockParser {
 	abstract matches(section: SectionCache): boolean;
-	abstract extract(options: ExtractOptions): { blocks: Block[], lastSectionIndex: number } | null;
+	abstract extract(options: ExtractOptions): { blocks: ParsedBlock[], lastSectionIndex: number } | null;
 }
 
 class ListBlockParser extends SectionBlockParser {
@@ -24,7 +24,7 @@ class ListBlockParser extends SectionBlockParser {
 		return section.type === "list";
 	}
 
-	extract({ startIndex, lines, matcher, cache }: ExtractOptions): { blocks: Block[], lastSectionIndex: number } | null {
+	extract({ startIndex, lines, matcher, cache }: ExtractOptions): { blocks: ParsedBlock[], lastSectionIndex: number } | null {
 		const sections = cache.sections;
 		if (!sections) return null;
 
@@ -38,7 +38,7 @@ class ListBlockParser extends SectionBlockParser {
 
 		if (listItemsInSection.length === 0) return null;
 
-		const blocks: Block[] = [];
+		const blocks: ParsedBlock[] = [];
 
 		let lastProcessedLine = -1;
 
@@ -119,7 +119,7 @@ class HeadingBlockParser extends SectionBlockParser {
 		return section.type === "heading";
 	}
 
-	extract({ startIndex, lines, matcher, cache }: ExtractOptions): { blocks: Block[], lastSectionIndex: number } | null {
+	extract({ startIndex, lines, matcher, cache }: ExtractOptions): { blocks: ParsedBlock[], lastSectionIndex: number } | null {
 		const sections = cache.sections;
 		if (!sections) return null;
 
@@ -181,7 +181,7 @@ class CodeBlockParser extends SectionBlockParser {
 		return section.type === "code";
 	}
 
-	extract({ startIndex, lines, matcher, cache }: ExtractOptions): { blocks: Block[], lastSectionIndex: number } | null {
+	extract({ startIndex, lines, matcher, cache }: ExtractOptions): { blocks: ParsedBlock[], lastSectionIndex: number } | null {
 		const sections = cache.sections;
 		if (!sections) return null;
 
@@ -218,7 +218,7 @@ class TableBlockParser extends SectionBlockParser {
 		return section.type === "table";
 	}
 
-	extract({ startIndex, lines, matcher, cache }: ExtractOptions): { blocks: Block[], lastSectionIndex: number } | null {
+	extract({ startIndex, lines, matcher, cache }: ExtractOptions): { blocks: ParsedBlock[], lastSectionIndex: number } | null {
 		const sections = cache.sections;
 		if (!sections) return null;
 
@@ -253,7 +253,7 @@ class TableBlockParser extends SectionBlockParser {
 			};
 		}
 
-		const blocks: Block[] = [];
+		const blocks: ParsedBlock[] = [];
 		for (let i = 2; i < tableLines.length; i++) {
 			const dataLine = tableLines[i];
 			if (!dataLine) continue;
@@ -282,7 +282,7 @@ class DefaultSectionParser extends SectionBlockParser {
 		return true;
 	}
 
-	extract({ startIndex, lines, matcher, cache }: ExtractOptions): { blocks: Block[], lastSectionIndex: number } | null {
+	extract({ startIndex, lines, matcher, cache }: ExtractOptions): { blocks: ParsedBlock[], lastSectionIndex: number } | null {
 		const sections = cache.sections;
 		if (!sections) return null;
 
@@ -338,14 +338,14 @@ export function parseBlocks(
 	metadata: CachedMetadata,
 	matcher: LineMatcher,
 	options?: ParseOptions
-): Block[] {
+): ParsedBlock[] {
 	if (!metadata?.sections) return [];
 
 	// log metadata to update the test file:
 	// console.log('metadata', metadata);
 
 	const lines = content.split("\n");
-	const blocks: Block[] = [];
+	const blocks: ParsedBlock[] = [];
 
 	const sectionParsers = [
 		new HeadingBlockParser(),

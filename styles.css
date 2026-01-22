@@ -114,7 +114,7 @@ body {
 	margin-block-end: 0 !important;
 }
 
-.block-view-placeholder {
+.block-view-empty-placeholder {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -124,18 +124,22 @@ body {
 	color: var(--text-muted);
 }
 
-.block-view-placeholder-title {
+.block-view-empty-placeholder-title {
 	font-size: var(--font-ui-medium);
 	font-weight: var(--font-medium);
 	margin-bottom: 0.3rem;
 	color: var(--text-normal);
 }
 
-.block-view-placeholder-subtitle {
+.block-view-empty-placeholder-subtitle {
 	font-size: var(--font-ui-small);
 	margin: 0;
 }
 
 .bv-task-anchor {
 	display: none;
+}
+
+.block-view-block-placeholder {
+	min-height: 3rem;
 }
