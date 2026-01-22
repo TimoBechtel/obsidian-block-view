@@ -1,7 +1,7 @@
 {
 	"id": "block-view",
 	"name": "Block View",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"minAppVersion": "1.10.6",
 	"description": "Filter and display the content of your notes in a Bases view.",
 	"author": "Timo Bechtel",
