@@ -21,6 +21,7 @@ import {
 	type LineMatcher,
 } from "../parsing/matchers";
 import { debounceLeading } from "../utils/debounce";
+import { hasTextSelection, isInteractiveTarget } from "../utils/is-interactive";
 
 export const BlockViewType = "block-view" as const;
 
@@ -264,7 +265,12 @@ export class BlockView extends BasesView implements HoverParent {
 		if (!(blockEl instanceof HTMLElement)) return;
 
 		// we make blocks clickable, but prevent clicks on links and other elements inside the block
-		if (this.isInteractiveTarget(target)) {
+		if (target !== blockEl && isInteractiveTarget(target)) {
+			return;
+		}
+
+		// prevent navigation when user selects text
+		if (hasTextSelection()) {
 			return;
 		}
 
@@ -378,32 +384,6 @@ export class BlockView extends BasesView implements HoverParent {
 
 		checkbox.disabled = true;
 		void this.toggleTaskAtLine(abstractFile, Number(line));
-	}
-
-	private isInteractiveTarget(target: HTMLElement): boolean {
-		const tagName = target.tagName?.toLowerCase() || "";
-		if (
-			tagName === "a" ||
-			tagName === "input" ||
-			tagName === "button" ||
-			tagName === "textarea" ||
-			tagName === "select"
-		) {
-			return true;
-		}
-
-		if (
-			target.isContentEditable ||
-			target.hasAttribute("contenteditable")
-		) {
-			return true;
-		}
-
-		if (target.closest("a, button, input, textarea, select, svg")) {
-			return true;
-		}
-
-		return false;
 	}
 
 	private handleIntersection(entries: IntersectionObserverEntry[]) {
