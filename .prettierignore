@@ -1,0 +1,2 @@
+# ignore test files to avoid metadata to get out of sync
+test/*
