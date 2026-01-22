@@ -22,9 +22,10 @@ export class TagMatcher implements LineMatcher {
 	}
 
 	matches({ cache, lineNumber }: MatchContext): boolean {
-		const tagsOnLine = cache.tags?.filter(t =>
-			t.position.start.line === lineNumber &&
-			this.targetTags.includes(t.tag.toLowerCase())
+		const tagsOnLine = cache.tags?.filter(
+			(t) =>
+				t.position.start.line === lineNumber &&
+				this.targetTags.includes(t.tag.toLowerCase())
 		);
 
 		return tagsOnLine !== undefined && tagsOnLine.length > 0;
@@ -55,7 +56,7 @@ export class RegexMatcher implements LineMatcher {
 }
 
 export class AndMatcher implements LineMatcher {
-	constructor(private matchers: LineMatcher[]) { }
+	constructor(private matchers: LineMatcher[]) {}
 
 	matches(context: MatchContext): boolean {
 		return this.matchers.every((matcher) => matcher.matches(context));
@@ -63,7 +64,7 @@ export class AndMatcher implements LineMatcher {
 }
 
 export class OrMatcher implements LineMatcher {
-	constructor(private matchers: LineMatcher[]) { }
+	constructor(private matchers: LineMatcher[]) {}
 
 	matches(context: MatchContext): boolean {
 		return this.matchers.some((matcher) => matcher.matches(context));
@@ -71,11 +72,13 @@ export class OrMatcher implements LineMatcher {
 }
 
 export class TaskMatcher implements LineMatcher {
-	constructor(private type: "any" | "incomplete" | "complete") { }
+	constructor(private type: "any" | "incomplete" | "complete") {}
 
 	matches({ cache, lineNumber }: MatchContext): boolean {
-		const listItem = cache.listItems?.find(item =>
-			item.position.start.line === lineNumber && item.task !== undefined
+		const listItem = cache.listItems?.find(
+			(item) =>
+				item.position.start.line === lineNumber &&
+				item.task !== undefined
 		);
 		if (!listItem) return false;
 		if (this.type === "any") return true;
@@ -87,7 +90,7 @@ export class TaskMatcher implements LineMatcher {
 
 export class QuoteMatcher implements LineMatcher {
 	matches({ section }: MatchContext): boolean {
-		return section.type === "blockquote" || section.type === 'callout';
+		return section.type === "blockquote" || section.type === "callout";
 	}
 }
 

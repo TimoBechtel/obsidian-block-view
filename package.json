@@ -9,7 +9,8 @@
 		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
 		"version": "node version-bump.mjs && git add manifest.json versions.json",
 		"lint": "eslint .",
-		"test": "bun test"
+		"test": "bun test",
+		"format": "prettier --write src"
 	},
 	"keywords": [],
 	"license": "MIT",
@@ -29,6 +30,7 @@
 		"typescript-eslint": "8.35.1"
 	},
 	"dependencies": {
-		"obsidian": "latest"
+		"obsidian": "latest",
+		"prettier": "^3.8.1"
 	}
 }

@@ -5,5 +5,5 @@
 		"editor.codeActionsOnSave": {
 			"source.fixAll.markdownlint": "never"
 		}
-	},
+	}
 }

@@ -16,7 +16,9 @@ type ExtractOptions = {
 
 abstract class SectionBlockParser {
 	abstract matches(section: SectionCache): boolean;
-	abstract extract(options: ExtractOptions): { blocks: ParsedBlock[], lastSectionIndex: number } | null;
+	abstract extract(
+		options: ExtractOptions
+	): { blocks: ParsedBlock[]; lastSectionIndex: number } | null;
 }
 
 class ListBlockParser extends SectionBlockParser {
@@ -24,17 +26,22 @@ class ListBlockParser extends SectionBlockParser {
 		return section.type === "list";
 	}
 
-	extract({ startIndex, lines, matcher, cache }: ExtractOptions): { blocks: ParsedBlock[], lastSectionIndex: number } | null {
+	extract({ startIndex, lines, matcher, cache }: ExtractOptions): {
+		blocks: ParsedBlock[];
+		lastSectionIndex: number;
+	} | null {
 		const sections = cache.sections;
 		if (!sections) return null;
 
 		const section = sections[startIndex];
 		if (!section) return null;
 
-		const listItemsInSection = cache.listItems?.filter(item =>
-			item.position.start.line >= section.position.start.line &&
-			item.position.end.line <= section.position.end.line
-		) ?? [];
+		const listItemsInSection =
+			cache.listItems?.filter(
+				(item) =>
+					item.position.start.line >= section.position.start.line &&
+					item.position.end.line <= section.position.end.line
+			) ?? [];
 
 		if (listItemsInSection.length === 0) return null;
 
@@ -50,12 +57,14 @@ class ListBlockParser extends SectionBlockParser {
 
 			if (startLine <= lastProcessedLine) continue;
 
-			if (!matcher.matches({
-				line: lines[startLine] ?? "",
-				lineNumber: startLine,
-				cache,
-				section,
-			})) {
+			if (
+				!matcher.matches({
+					line: lines[startLine] ?? "",
+					lineNumber: startLine,
+					cache,
+					section,
+				})
+			) {
 				continue;
 			}
 
@@ -74,13 +83,15 @@ class ListBlockParser extends SectionBlockParser {
 			});
 		}
 
-		return blocks.length > 0 ? { blocks, lastSectionIndex: startIndex } : null;
+		return blocks.length > 0
+			? { blocks, lastSectionIndex: startIndex }
+			: null;
 	}
 
 	/**
 	 * Finds the end line of a block starting from a list item.
 	 * Includes all children and continuation paragraphs.
-	 * 
+	 *
 	 * Note: Assumes the items are sorted by start line.
 	 */
 	private findBlockEndForItem(
@@ -119,7 +130,10 @@ class HeadingBlockParser extends SectionBlockParser {
 		return section.type === "heading";
 	}
 
-	extract({ startIndex, lines, matcher, cache }: ExtractOptions): { blocks: ParsedBlock[], lastSectionIndex: number } | null {
+	extract({ startIndex, lines, matcher, cache }: ExtractOptions): {
+		blocks: ParsedBlock[];
+		lastSectionIndex: number;
+	} | null {
 		const sections = cache.sections;
 		if (!sections) return null;
 
@@ -129,12 +143,14 @@ class HeadingBlockParser extends SectionBlockParser {
 		const headingLine = lines[section.position.start.line];
 		if (!headingLine) return null;
 
-		if (!matcher.matches({
-			line: headingLine,
-			lineNumber: section.position.start.line,
-			cache,
-			section,
-		})) {
+		if (
+			!matcher.matches({
+				line: headingLine,
+				lineNumber: section.position.start.line,
+				cache,
+				section,
+			})
+		) {
 			return null;
 		}
 
@@ -159,13 +175,15 @@ class HeadingBlockParser extends SectionBlockParser {
 		}
 
 		return {
-			blocks: [{
-				content: lines
-					.slice(section.position.start.line, endLine + 1)
-					.join("\n"),
-				startLine: section.position.start.line,
-				endLine,
-			}],
+			blocks: [
+				{
+					content: lines
+						.slice(section.position.start.line, endLine + 1)
+						.join("\n"),
+					startLine: section.position.start.line,
+					endLine,
+				},
+			],
 			lastSectionIndex,
 		};
 	}
@@ -181,7 +199,10 @@ class CodeBlockParser extends SectionBlockParser {
 		return section.type === "code";
 	}
 
-	extract({ startIndex, lines, matcher, cache }: ExtractOptions): { blocks: ParsedBlock[], lastSectionIndex: number } | null {
+	extract({ startIndex, lines, matcher, cache }: ExtractOptions): {
+		blocks: ParsedBlock[];
+		lastSectionIndex: number;
+	} | null {
 		const sections = cache.sections;
 		if (!sections) return null;
 
@@ -191,23 +212,30 @@ class CodeBlockParser extends SectionBlockParser {
 		const fenceLine = lines[section.position.start.line];
 		if (!fenceLine) return null;
 
-		if (!matcher.matches({
-			line: fenceLine,
-			lineNumber: section.position.start.line,
-			cache,
-			section,
-		})) {
+		if (
+			!matcher.matches({
+				line: fenceLine,
+				lineNumber: section.position.start.line,
+				cache,
+				section,
+			})
+		) {
 			return null;
 		}
 
 		return {
-			blocks: [{
-				content: lines
-					.slice(section.position.start.line, section.position.end.line + 1)
-					.join("\n"),
-				startLine: section.position.start.line,
-				endLine: section.position.end.line,
-			}],
+			blocks: [
+				{
+					content: lines
+						.slice(
+							section.position.start.line,
+							section.position.end.line + 1
+						)
+						.join("\n"),
+					startLine: section.position.start.line,
+					endLine: section.position.end.line,
+				},
+			],
 			lastSectionIndex: startIndex,
 		};
 	}
@@ -218,7 +246,10 @@ class TableBlockParser extends SectionBlockParser {
 		return section.type === "table";
 	}
 
-	extract({ startIndex, lines, matcher, cache }: ExtractOptions): { blocks: ParsedBlock[], lastSectionIndex: number } | null {
+	extract({ startIndex, lines, matcher, cache }: ExtractOptions): {
+		blocks: ParsedBlock[];
+		lastSectionIndex: number;
+	} | null {
 		const sections = cache.sections;
 		if (!sections) return null;
 
@@ -237,18 +268,22 @@ class TableBlockParser extends SectionBlockParser {
 
 		if (!headerLine || !separatorLine) return null;
 
-		if (matcher.matches({
-			line: headerLine,
-			lineNumber: section.position.start.line,
-			cache,
-			section,
-		})) {
+		if (
+			matcher.matches({
+				line: headerLine,
+				lineNumber: section.position.start.line,
+				cache,
+				section,
+			})
+		) {
 			return {
-				blocks: [{
-					content: tableLines.join("\n"),
-					startLine: section.position.start.line,
-					endLine: section.position.end.line,
-				}],
+				blocks: [
+					{
+						content: tableLines.join("\n"),
+						startLine: section.position.start.line,
+						endLine: section.position.end.line,
+					},
+				],
 				lastSectionIndex: startIndex,
 			};
 		}
@@ -258,12 +293,14 @@ class TableBlockParser extends SectionBlockParser {
 			const dataLine = tableLines[i];
 			if (!dataLine) continue;
 
-			if (matcher.matches({
-				line: dataLine,
-				lineNumber: section.position.start.line + i,
-				cache,
-				section,
-			})) {
+			if (
+				matcher.matches({
+					line: dataLine,
+					lineNumber: section.position.start.line + i,
+					cache,
+					section,
+				})
+			) {
 				const blockLines = [headerLine, separatorLine, dataLine];
 				blocks.push({
 					content: blockLines.join("\n"),
@@ -273,7 +310,9 @@ class TableBlockParser extends SectionBlockParser {
 			}
 		}
 
-		return blocks.length > 0 ? { blocks, lastSectionIndex: startIndex } : null;
+		return blocks.length > 0
+			? { blocks, lastSectionIndex: startIndex }
+			: null;
 	}
 }
 
@@ -282,7 +321,10 @@ class DefaultSectionParser extends SectionBlockParser {
 		return true;
 	}
 
-	extract({ startIndex, lines, matcher, cache }: ExtractOptions): { blocks: ParsedBlock[], lastSectionIndex: number } | null {
+	extract({ startIndex, lines, matcher, cache }: ExtractOptions): {
+		blocks: ParsedBlock[];
+		lastSectionIndex: number;
+	} | null {
 		const sections = cache.sections;
 		if (!sections) return null;
 
@@ -316,13 +358,15 @@ class DefaultSectionParser extends SectionBlockParser {
 		}
 
 		return {
-			blocks: [{
-				content: lines
-					.slice(section.position.start.line, endLine + 1)
-					.join("\n"),
-				startLine: section.position.start.line,
-				endLine,
-			}],
+			blocks: [
+				{
+					content: lines
+						.slice(section.position.start.line, endLine + 1)
+						.join("\n"),
+					startLine: section.position.start.line,
+					endLine,
+				},
+			],
 			lastSectionIndex,
 		};
 	}
@@ -359,7 +403,9 @@ export function parseBlocks(
 		const section = metadata.sections[i];
 		if (!section || section.type === "yaml") continue;
 
-		const parser: SectionBlockParser | undefined = sectionParsers.find((p) => p.matches(section));
+		const parser: SectionBlockParser | undefined = sectionParsers.find(
+			(p) => p.matches(section)
+		);
 		if (!parser) continue;
 
 		const result = parser.extract({

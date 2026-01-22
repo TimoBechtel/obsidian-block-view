@@ -123,9 +123,10 @@ describe("extractBlocks", () => {
 		const matcher = new TagMatcher(["#log"]);
 		const blocks = parseBlocks(exampleNote, exampleMetadata, matcher);
 
-		const jsCodeBlock = blocks.find((block) =>
-			block.content.includes("```javascript") &&
-			block.content.includes("// code block with #log tag")
+		const jsCodeBlock = blocks.find(
+			(block) =>
+				block.content.includes("```javascript") &&
+				block.content.includes("// code block with #log tag")
 		);
 		expect(jsCodeBlock).toBeUndefined();
 	});
@@ -148,12 +149,18 @@ describe("extractBlocks", () => {
 			block.content.includes("> This is a quote with #log tag")
 		);
 		expect(blockquote).toBeDefined();
-		expect(blockquote?.content).not.toContain("> Regular quote without tag");
+		expect(blockquote?.content).not.toContain(
+			"> Regular quote without tag"
+		);
 		expect(blockquote?.content).toContain("> Following is a quote:");
-		expect(blockquote?.content).toContain("> This is a quote with #log tag");
+		expect(blockquote?.content).toContain(
+			"> This is a quote with #log tag"
+		);
 		expect(blockquote?.content).toContain("> Continuation of quote");
 		expect(blockquote?.content).toContain("> Still part of the same quote");
-		expect(blockquote?.content).not.toContain("> Another quote without tag");
+		expect(blockquote?.content).not.toContain(
+			"> Another quote without tag"
+		);
 	});
 
 	test("extracts tables with tags when filtering rows", () => {
@@ -166,18 +173,30 @@ describe("extractBlocks", () => {
 			block.content.includes("| Data #log |")
 		);
 		expect(tableWithTagInCell).toBeDefined();
-		expect(tableWithTagInCell?.content).toContain("| Column 1  | Column 2 |");
-		expect(tableWithTagInCell?.content).not.toContain("| Data      | More     |");
-		expect(tableWithTagInCell?.content).toContain("| Data #log | More     |");
+		expect(tableWithTagInCell?.content).toContain(
+			"| Column 1  | Column 2 |"
+		);
+		expect(tableWithTagInCell?.content).not.toContain(
+			"| Data      | More     |"
+		);
+		expect(tableWithTagInCell?.content).toContain(
+			"| Data #log | More     |"
+		);
 
 		// when header matches, all rows are included
 		const tableWithTagInHeader = blocks.find((block) =>
 			block.content.includes("| Status #log |")
 		);
 		expect(tableWithTagInHeader).toBeDefined();
-		expect(tableWithTagInHeader?.content).toContain("| Name     | Status #log |");
-		expect(tableWithTagInHeader?.content).toContain("| Item 1   | Active      |");
-		expect(tableWithTagInHeader?.content).toContain("| Item 2   | Pending     |");
+		expect(tableWithTagInHeader?.content).toContain(
+			"| Name     | Status #log |"
+		);
+		expect(tableWithTagInHeader?.content).toContain(
+			"| Item 1   | Active      |"
+		);
+		expect(tableWithTagInHeader?.content).toContain(
+			"| Item 2   | Pending     |"
+		);
 	});
 
 	test("extracts full tables by default", () => {
@@ -215,9 +234,10 @@ describe("extractBlocks", () => {
 		const matcher = new TagMatcher(["#adjacent"]);
 		const blocks = parseBlocks(exampleNote, exampleMetadata, matcher);
 
-		const afterBlock = blocks.find((block) =>
-			block.content.includes("#adjacent") &&
-			block.content.includes("def adjacent_before()")
+		const afterBlock = blocks.find(
+			(block) =>
+				block.content.includes("#adjacent") &&
+				block.content.includes("def adjacent_before()")
 		);
 		expect(afterBlock).toBeDefined();
 		expect(afterBlock?.content).toContain("#adjacent");

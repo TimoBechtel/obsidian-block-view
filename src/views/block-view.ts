@@ -7,10 +7,19 @@ import {
 	type BasesEntry,
 	type HoverParent,
 	type HoverPopover,
-	type QueryController
+	type QueryController,
 } from "obsidian";
 import { parseBlocks, type ParsedBlock } from "../parsing/block-parser";
-import { AndMatcher, CodeBlockMatcher, OrMatcher, QuoteMatcher, RegexMatcher, TagMatcher, TaskMatcher, type LineMatcher } from "../parsing/matchers";
+import {
+	AndMatcher,
+	CodeBlockMatcher,
+	OrMatcher,
+	QuoteMatcher,
+	RegexMatcher,
+	TagMatcher,
+	TaskMatcher,
+	type LineMatcher,
+} from "../parsing/matchers";
 import { debounceLeading } from "../utils/debounce";
 
 export const BlockViewType = "block-view" as const;
@@ -34,7 +43,7 @@ export class BlockView extends BasesView implements HoverParent {
 
 	/**
 	 * Visible blocks are rendered eagerly, but invisible blocks are lazy loaded on scroll.
-	 * This avoids flashing content. 
+	 * This avoids flashing content.
 	 */
 	private shouldLazyLoad = false;
 
@@ -73,7 +82,7 @@ export class BlockView extends BasesView implements HoverParent {
 		const context = this.getRenderContext();
 		const currentHeight = this.containerEl.offsetHeight;
 		if (currentHeight > 0) {
-			// avoid scroll reset 
+			// avoid scroll reset
 			this.containerEl.setCssStyles({ minHeight: `${currentHeight}px` });
 		}
 
@@ -82,7 +91,6 @@ export class BlockView extends BasesView implements HoverParent {
 		this.shouldLazyLoad = false;
 
 		this.intersectionObserver.disconnect();
-
 
 		if (!context.hasActiveFilters) {
 			this.renderEmptyPlaceholder();
@@ -94,7 +102,9 @@ export class BlockView extends BasesView implements HoverParent {
 		this.containerEl.setCssStyles({ minHeight: "" });
 	}
 
-	private async renderGroups(context: ReturnType<typeof this.getRenderContext>) {
+	private async renderGroups(
+		context: ReturnType<typeof this.getRenderContext>
+	) {
 		const { app } = this;
 		const {
 			matcher,
@@ -142,7 +152,14 @@ export class BlockView extends BasesView implements HoverParent {
 				hasContent = true;
 				const fileEl = groupEl.createDiv("block-view-file");
 				fileEl.dataset.filePath = file.path;
-				await this.renderFile(fileEl, entry, file, blocks, context, fileTaskLines);
+				await this.renderFile(
+					fileEl,
+					entry,
+					file,
+					blocks,
+					context,
+					fileTaskLines
+				);
 			}
 
 			if (!hasContent) {
@@ -151,7 +168,9 @@ export class BlockView extends BasesView implements HoverParent {
 			}
 
 			if (group.key !== undefined && group.key !== null) {
-				const groupHeaderEl = groupEl.createDiv("block-view-group-header");
+				const groupHeaderEl = groupEl.createDiv(
+					"block-view-group-header"
+				);
 				group.key.renderTo(groupHeaderEl, {
 					hoverPopover: this.hoverPopover,
 				});
@@ -163,7 +182,11 @@ export class BlockView extends BasesView implements HoverParent {
 	/**
 	 * Adds hidden anchors to task lines with the line number in the markdown source.
 	 */
-	private decorateTaskLines(content: string, startLine: number, fileTaskLines: Set<number>): string {
+	private decorateTaskLines(
+		content: string,
+		startLine: number,
+		fileTaskLines: Set<number>
+	): string {
 		// quick check first to skip unnecessary splitting
 		if (!content.includes("[") || !content.includes("]")) return content;
 
@@ -180,7 +203,9 @@ export class BlockView extends BasesView implements HoverParent {
 
 	private async toggleTaskAtLine(file: TFile, line: number): Promise<void> {
 		const metadata = this.app.metadataCache.getFileCache(file);
-		const listItem = metadata?.listItems?.find(item => item.position.start.line === line);
+		const listItem = metadata?.listItems?.find(
+			(item) => item.position.start.line === line
+		);
 
 		if (!listItem || listItem.task === undefined) {
 			console.error("Could not find target task line in metadata");
@@ -195,9 +220,12 @@ export class BlockView extends BasesView implements HoverParent {
 				return content;
 			}
 
-			lines[line] = current.replace(/\[([ xX])\]/, (match, status: string) => {
-				return status.toLowerCase() === "x" ? "[ ]" : "[x]";
-			});
+			lines[line] = current.replace(
+				/\[([ xX])\]/,
+				(match, status: string) => {
+					return status.toLowerCase() === "x" ? "[ ]" : "[x]";
+				}
+			);
 			return lines.join("\n");
 		});
 	}
@@ -224,7 +252,9 @@ export class BlockView extends BasesView implements HoverParent {
 			return;
 		}
 
-		const checkbox = target.closest('input[type="checkbox"].task-list-item-checkbox');
+		const checkbox = target.closest(
+			'input[type="checkbox"].task-list-item-checkbox'
+		);
 		if (checkbox instanceof HTMLInputElement) {
 			this.handleCheckboxClick(evt, checkbox);
 			return;
@@ -244,12 +274,9 @@ export class BlockView extends BasesView implements HoverParent {
 
 		evt.preventDefault();
 		const modEvent = Keymap.isModEvent(evt);
-		void this.app.workspace.openLinkText(
-			filePath,
-			"",
-			modEvent,
-			{ eState: { line } }
-		);
+		void this.app.workspace.openLinkText(filePath, "", modEvent, {
+			eState: { line },
+		});
 	}
 
 	private handleContainerMouseOver(evt: MouseEvent) {
@@ -259,11 +286,16 @@ export class BlockView extends BasesView implements HoverParent {
 		const internalLink = target.closest("a.internal-link");
 		if (!(internalLink instanceof HTMLAnchorElement)) return;
 
-		const href = internalLink.getAttribute("data-href") || internalLink.getAttribute("href");
+		const href =
+			internalLink.getAttribute("data-href") ||
+			internalLink.getAttribute("href");
 		if (!href) return;
 
 		const fileEl = internalLink.closest(".block-view-file");
-		const sourcePath = fileEl instanceof HTMLElement ? fileEl.dataset.filePath ?? "" : "";
+		const sourcePath =
+			fileEl instanceof HTMLElement
+				? (fileEl.dataset.filePath ?? "")
+				: "";
 
 		this.app.workspace.trigger("hover-link", {
 			event: evt,
@@ -275,20 +307,23 @@ export class BlockView extends BasesView implements HoverParent {
 		});
 	}
 
-	private handleInternalLinkClick(evt: MouseEvent, linkEl: HTMLAnchorElement) {
+	private handleInternalLinkClick(
+		evt: MouseEvent,
+		linkEl: HTMLAnchorElement
+	) {
 		evt.preventDefault();
 
-		const href = linkEl.getAttribute("data-href") || linkEl.getAttribute("href");
+		const href =
+			linkEl.getAttribute("data-href") || linkEl.getAttribute("href");
 		if (!href) return;
 
 		const fileEl = linkEl.closest(".block-view-file");
-		const sourcePath = fileEl instanceof HTMLElement ? fileEl.dataset.filePath ?? "" : "";
+		const sourcePath =
+			fileEl instanceof HTMLElement
+				? (fileEl.dataset.filePath ?? "")
+				: "";
 		const modEvent = Keymap.isModEvent(evt);
-		void this.app.workspace.openLinkText(
-			href,
-			sourcePath,
-			modEvent
-		);
+		void this.app.workspace.openLinkText(href, sourcePath, modEvent);
 	}
 
 	/**
@@ -329,7 +364,8 @@ export class BlockView extends BasesView implements HoverParent {
 		evt.stopPropagation();
 
 		const fileEl = checkbox.closest(".block-view-file");
-		const filePath = fileEl instanceof HTMLElement ? fileEl.dataset.filePath : undefined;
+		const filePath =
+			fileEl instanceof HTMLElement ? fileEl.dataset.filePath : undefined;
 		if (!filePath) return;
 
 		const abstractFile = this.app.vault.getAbstractFileByPath(filePath);
@@ -356,7 +392,10 @@ export class BlockView extends BasesView implements HoverParent {
 			return true;
 		}
 
-		if (target.isContentEditable || target.hasAttribute("contenteditable")) {
+		if (
+			target.isContentEditable ||
+			target.hasAttribute("contenteditable")
+		) {
 			return true;
 		}
 
@@ -366,7 +405,6 @@ export class BlockView extends BasesView implements HoverParent {
 
 		return false;
 	}
-
 
 	private handleIntersection(entries: IntersectionObserverEntry[]) {
 		for (const entry of entries) {
@@ -410,7 +448,9 @@ export class BlockView extends BasesView implements HoverParent {
 	}
 
 	private renderEmptyPlaceholder() {
-		const placeholderEl = this.containerEl.createDiv("block-view-empty-placeholder");
+		const placeholderEl = this.containerEl.createDiv(
+			"block-view-empty-placeholder"
+		);
 		placeholderEl.createEl("p", {
 			text: "No filters enabled",
 			cls: "block-view-empty-placeholder-title",
@@ -423,18 +463,32 @@ export class BlockView extends BasesView implements HoverParent {
 
 	private getRenderContext() {
 		const filterTasks = !!this.config.get("filterTasks");
-		const filterTasksType = this.config.get("filterTasksType") as "any" | "incomplete" | "complete" ?? "any";
+		const filterTasksType =
+			(this.config.get("filterTasksType") as
+				| "any"
+				| "incomplete"
+				| "complete") ?? "any";
 		const filterQuotes = !!this.config.get("filterQuotes");
 		const filterCodeBlocks = !!this.config.get("filterCodeBlocks");
-		const filterCodeBlocksLanguage = String(this.config.get("filterCodeBlocksLanguage") as string ?? "");
-		const tagFilter = this.config.get("tagFilter") as string[] ?? [];
-		const regexPattern = String(this.config.get("regexPattern") as string ?? "");
-		const matchLogic = this.config.get("matchLogic") as "any" | "all" ?? "any";
+		const filterCodeBlocksLanguage = String(
+			(this.config.get("filterCodeBlocksLanguage") as string) ?? ""
+		);
+		const tagFilter = (this.config.get("tagFilter") as string[]) ?? [];
+		const regexPattern = String(
+			(this.config.get("regexPattern") as string) ?? ""
+		);
+		const matchLogic =
+			(this.config.get("matchLogic") as "any" | "all") ?? "any";
 		const showAllFiles = !!this.config.get("showAllFiles");
-		const showFilesWithoutMatches = !!this.config.get("showFilesWithoutMatches");
+		const showFilesWithoutMatches = !!this.config.get(
+			"showFilesWithoutMatches"
+		);
 		const filterTableRows = !!this.config.get("filterTableRows");
-		const propertySeparator = String(this.config.get("separator") as string ?? "|");
-		const maxBlocksPerFile = Number(this.config.get("maxBlocksPerFile") as string ?? "0") || 0;
+		const propertySeparator = String(
+			(this.config.get("separator") as string) ?? "|"
+		);
+		const maxBlocksPerFile =
+			Number((this.config.get("maxBlocksPerFile") as string) ?? "0") || 0;
 		const selectedProperties = this.config.getOrder();
 
 		const hasTagFilter = tagFilter && tagFilter.length > 0;
@@ -443,18 +497,21 @@ export class BlockView extends BasesView implements HoverParent {
 		const matchers: LineMatcher[] = [
 			...(filterTasks ? [new TaskMatcher(filterTasksType)] : []),
 			...(filterQuotes ? [new QuoteMatcher()] : []),
-			...(filterCodeBlocks ? [new CodeBlockMatcher(filterCodeBlocksLanguage)] : []),
+			...(filterCodeBlocks
+				? [new CodeBlockMatcher(filterCodeBlocksLanguage)]
+				: []),
 			...(hasTagFilter ? [new TagMatcher(tagFilter)] : []),
 			...(hasRegexPattern ? [new RegexMatcher(regexPattern)] : []),
 		];
 
 		const hasActiveFilters = matchers.length > 0;
 
-		const matcher = (matchers.length === 1 && matchers[0])
-			? matchers[0]
-			: matchLogic === "all"
-				? new AndMatcher(matchers)
-				: new OrMatcher(matchers);
+		const matcher =
+			matchers.length === 1 && matchers[0]
+				? matchers[0]
+				: matchLogic === "all"
+					? new AndMatcher(matchers)
+					: new OrMatcher(matchers);
 
 		return {
 			matcher,
@@ -473,7 +530,10 @@ export class BlockView extends BasesView implements HoverParent {
 		entry: BasesEntry,
 		file: TFile,
 		blocks: ReturnType<typeof parseBlocks>,
-		{ selectedProperties, propertySeparator }: ReturnType<typeof this.getRenderContext>,
+		{
+			selectedProperties,
+			propertySeparator,
+		}: ReturnType<typeof this.getRenderContext>,
 		fileTaskLines: Set<number>
 	) {
 		fileEl.empty();
@@ -499,11 +559,16 @@ export class BlockView extends BasesView implements HoverParent {
 				if (!value) continue;
 
 				if (!firstProp) {
-					headerEl.createSpan({ cls: "block-view-separator", text: propertySeparator });
+					headerEl.createSpan({
+						cls: "block-view-separator",
+						text: propertySeparator,
+					});
 				}
 				firstProp = false;
 
-				const valueEl = headerEl.createSpan("block-view-property-value");
+				const valueEl = headerEl.createSpan(
+					"block-view-property-value"
+				);
 				try {
 					value.renderTo(valueEl, {
 						hoverPopover: this.hoverPopover,
@@ -526,7 +591,6 @@ export class BlockView extends BasesView implements HoverParent {
 			);
 			blockEl.dataset.filePath = file.path;
 			blockEl.dataset.startLine = String(block.startLine);
-
 
 			// we estimate the height based on line count
 			const lineCount = block.endLine - block.startLine + 1;

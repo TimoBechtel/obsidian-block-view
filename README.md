@@ -13,7 +13,7 @@
 
 ## What is Block View?
 
-Block View is an extension for the Bases core plugin that allows you to list and filter specific sections of your notes - *"blocks"* - across your entire vault.
+Block View is an extension for the Bases core plugin that allows you to list and filter specific sections of your notes - _"blocks"_ - across your entire vault.
 
 ![Block View Demo](https://raw.githubusercontent.com/TimoBechtel/obsidian-block-view/main/docs/assets/obsidian-block-view.gif)
 
@@ -130,30 +130,29 @@ views:
 
 </details>
 
-
 ## Context Matching
 
 Block View uses the Markdown structure to determine what content belongs to a match.
 
-* **Headers:** If a header matches the filter, the view includes the content of that section up to the next header of the same level.
-* **Lists:** If a list item matches, it includes all nested children items and continuation paragraphs.
-* **Tables:** You can choose to show the whole table if one cell matches or filter down to specific rows.
-* **Code:** It respects code block fences.
+- **Headers:** If a header matches the filter, the view includes the content of that section up to the next header of the same level.
+- **Lists:** If a list item matches, it includes all nested children items and continuation paragraphs.
+- **Tables:** You can choose to show the whole table if one cell matches or filter down to specific rows.
+- **Code:** It respects code block fences.
 
 ## View Options
 
 You can configure these settings via the view options panel in the Bases view.
 
-| Option | Description |
-| :--- | :--- |
-| **Tasks** | Toggle to show task items (`- [ ]`). |
-| **Show** | If tasks are enabled, choose `Any`, `Incomplete`, or `Complete`. |
-| **Quotes** | Toggle to show Blockquotes (`> text`) and Callouts. |
-| **Code Blocks** | Toggle to show code blocks. |
-| **Language** | Filter code blocks by language (e.g., `js`, `python`). |
-| **Include tags** | A list of tags to filter by. Supports nested tags. |
-| **Include if** | `Any` (match at least one filter) or `All` (must match all active filters). |
-| **Regex pattern** | Advanced: specify a custom Regex pattern to match lines. |
+| Option              | Description                                                                   |
+| :------------------ | :---------------------------------------------------------------------------- |
+| **Tasks**           | Toggle to show task items (`- [ ]`).                                          |
+| **Show**            | If tasks are enabled, choose `Any`, `Incomplete`, or `Complete`.              |
+| **Quotes**          | Toggle to show Blockquotes (`> text`) and Callouts.                           |
+| **Code Blocks**     | Toggle to show code blocks.                                                   |
+| **Language**        | Filter code blocks by language (e.g., `js`, `python`).                        |
+| **Include tags**    | A list of tags to filter by. Supports nested tags.                            |
+| **Include if**      | `Any` (match at least one filter) or `All` (must match all active filters).   |
+| **Regex pattern**   | Advanced: specify a custom Regex pattern to match lines.                      |
 | **Display Options** | Customize table dividers, hide empty files, or strip non-matching table rows. |
 
 ## Installation

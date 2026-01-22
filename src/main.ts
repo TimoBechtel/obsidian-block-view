@@ -22,9 +22,9 @@ export default class BlockViewPlugin extends Plugin {
 					key: "filterTasksType",
 					default: "any",
 					options: {
-						"any": "Any",
-						"incomplete": "Incomplete",
-						"complete": "Complete",
+						any: "Any",
+						incomplete: "Incomplete",
+						complete: "Complete",
 					} as Record<string, string>,
 					shouldHide: (config) => !config.get("filterTasks"),
 				},
@@ -60,8 +60,8 @@ export default class BlockViewPlugin extends Plugin {
 					key: "matchLogic",
 					default: "any",
 					options: {
-						"any": "Any filter matches",
-						"all": "All filters match",
+						any: "Any filter matches",
+						all: "All filters match",
 					} as Record<string, string>,
 				},
 				{
@@ -95,7 +95,8 @@ export default class BlockViewPlugin extends Plugin {
 						},
 						{
 							type: "toggle",
-							displayName: "Include other file types than markdown",
+							displayName:
+								"Include other file types than markdown",
 							key: "showAllFiles",
 							default: false,
 						},
