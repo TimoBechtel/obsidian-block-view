@@ -48,6 +48,8 @@ export class BlockView extends BasesView implements HoverParent {
 	 */
 	private shouldLazyLoad = false;
 
+	private savedScrollPosition: number | undefined;
+
 	hoverPopover: HoverPopover | null;
 
 	constructor(controller: QueryController, parentEl: HTMLElement) {
@@ -101,6 +103,7 @@ export class BlockView extends BasesView implements HoverParent {
 
 		await this.renderGroups(context);
 		this.containerEl.setCssStyles({ minHeight: "" });
+		this.restoreScrollPosition();
 	}
 
 	private async renderGroups(
@@ -598,6 +601,33 @@ export class BlockView extends BasesView implements HoverParent {
 			} else {
 				void this.populatePlaceholder(blockEl);
 			}
+		}
+	}
+
+	getEphemeralState() {
+		return {
+			scroll: this.containerEl.parentElement?.scrollTop ?? 0,
+		};
+	}
+
+	setEphemeralState(state: unknown) {
+		if (state && typeof state === "object" && "scroll" in state) {
+			const scroll = state.scroll;
+			if (typeof scroll === "number") {
+				this.savedScrollPosition = scroll;
+			}
+		}
+	}
+
+	private restoreScrollPosition() {
+		if (this.savedScrollPosition !== undefined) {
+			requestAnimationFrame(() => {
+				if (this.containerEl.parentElement) {
+					this.containerEl.parentElement.scrollTop =
+						this.savedScrollPosition!;
+					this.savedScrollPosition = undefined;
+				}
+			});
 		}
 	}
 }
