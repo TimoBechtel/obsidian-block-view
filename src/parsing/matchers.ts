@@ -139,10 +139,14 @@ export class QuoteMatcher implements Matcher {
 }
 
 export class CodeBlockMatcher implements Matcher {
-	private language: string | null;
+	private languages: Set<string>;
 
-	constructor(language?: string) {
-		this.language = language?.trim() || null;
+	constructor(languages?: string[]) {
+		this.languages = new Set(
+			(languages ?? [])
+				.map((lang) => lang.trim().toLowerCase())
+				.filter((lang) => lang.length > 0)
+		);
 	}
 
 	matches({ range, sectionType, lines }: MatchContext): boolean {
@@ -150,7 +154,7 @@ export class CodeBlockMatcher implements Matcher {
 			return false;
 		}
 
-		if (!this.language) {
+		if (this.languages.size === 0) {
 			return true;
 		}
 
@@ -165,7 +169,7 @@ export class CodeBlockMatcher implements Matcher {
 			return false;
 		}
 
-		return afterFence.toLowerCase() === this.language.toLowerCase();
+		return this.languages.has(afterFence.toLowerCase());
 	}
 }
 

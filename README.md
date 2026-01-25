@@ -48,8 +48,8 @@ views:
       - property: file.mtime
         direction: DESC
     tagFilter:
-      - log
-      - work
+      - "#log"
+      - "#work"
 ```
 ````
 
@@ -93,8 +93,9 @@ views:
   - type: block-view
     name: "Python Library"
     filterCodeBlocks: true
-    filterCodeBlocksLanguage: python
-	groupBy:
+    filterCodeBlocksLanguages:
+      - python
+    groupBy:
       property: file.folder
       direction: ASC
     order:
@@ -150,8 +151,8 @@ You can configure these settings via the view options panel in the Bases view.
 | **Quotes**          | Toggle to show Blockquotes (`> text`) and/or Callouts.                        |
 | **Quote type**      | If quotes are enabled, choose `Any`, `Blockquotes`, or `Callouts`.            |
 | **Code Blocks**     | Toggle to show code blocks.                                                   |
-| **Language**        | Filter code blocks by language (e.g., `js`, `python`).                        |
-| **Include tags**    | A list of tags to filter by. Supports nested tags.                            |
+| **Languages**       | Multi-select filter for code block languages. Use `-` prefix to exclude (e.g., `ts`, `js`, `-base`). Default excludes `base`. |
+| **Include tags**    | Multi-select list of tags to filter by. Use `-` prefix to exclude (e.g., `#work`, `-#archived`). Supports nested tags. |
 | **Include if**      | `Any` (match at least one filter) or `All` (must match all active filters).   |
 | **Text pattern**    | Match text or regex (wrap in `//`). Supports invert.                          |
 | **Display Options** | Customize table dividers, hide empty files, or strip non-matching table rows. |

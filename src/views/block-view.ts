@@ -459,9 +459,9 @@ export class BlockView extends BasesView implements HoverParent {
 				| "quotes"
 				| "callouts") ?? "quotes";
 		const filterCodeBlocks = !!this.config.get("filterCodeBlocks");
-		const filterCodeBlocksLanguage = String(
-			(this.config.get("filterCodeBlocksLanguage") as string) ?? ""
-		);
+		const filterCodeBlocksLanguages = (this.config.get(
+			"filterCodeBlocksLanguages"
+		) as string[]) ?? ["-base"];
 		const tagFilter = (this.config.get("tagFilter") as string[]) ?? [];
 		const textPattern = String(
 			(this.config.get("textPattern") as string) ?? ""
@@ -481,16 +481,82 @@ export class BlockView extends BasesView implements HoverParent {
 			Number((this.config.get("maxBlocksPerFile") as string) ?? "0") || 0;
 		const selectedProperties = this.config.getOrder();
 
-		const hasTagFilter = tagFilter && tagFilter.length > 0;
+		function splitIncludesExcludes(items: string[]): {
+			includes: string[];
+			excludes: string[];
+		} {
+			const includes: string[] = [];
+			const excludes: string[] = [];
+
+			for (const item of items) {
+				const trimmed = item.trim();
+				if (!trimmed) continue;
+
+				if (trimmed.startsWith("-")) {
+					excludes.push(trimmed.slice(1).trim());
+				} else {
+					includes.push(trimmed);
+				}
+			}
+
+			return { includes, excludes };
+		}
+
+		const { includes: includeTags, excludes: excludeTags } =
+			splitIncludesExcludes(tagFilter);
+		const { includes: includeLanguages, excludes: excludeLanguages } =
+			splitIncludesExcludes(filterCodeBlocksLanguages);
+
 		const hasTextPattern = textPattern && textPattern.trim() !== "";
 
 		const matchers: Matcher[] = [
 			...(filterTasks ? [new TaskMatcher(filterTasksType)] : []),
 			...(filterQuotes ? [new QuoteMatcher(filterQuotesType)] : []),
+			...(() => {
+				const tagMatchers: Matcher[] = [];
+				if (excludeTags.length > 0) {
+					tagMatchers.push(
+						new NotMatcher(new TagMatcher(excludeTags))
+					);
+				}
+				if (includeTags.length > 0) {
+					tagMatchers.push(new TagMatcher(includeTags));
+				}
+
+				if (tagMatchers.length === 0) return [];
+				if (tagMatchers.length === 1 && includeTags.length > 0)
+					return tagMatchers;
+				if (tagMatchers.length > 0)
+					return [new AndMatcher(tagMatchers)];
+				return [];
+			})(),
 			...(filterCodeBlocks
-				? [new CodeBlockMatcher(filterCodeBlocksLanguage)]
+				? (() => {
+						const codeMatchers: Matcher[] = [];
+
+						if (excludeLanguages.length > 0) {
+							if (includeLanguages.length === 0) {
+								// make sure to only match code blocks
+								codeMatchers.push(new CodeBlockMatcher());
+							}
+							codeMatchers.push(
+								new NotMatcher(
+									new CodeBlockMatcher(excludeLanguages)
+								)
+							);
+						}
+						if (includeLanguages.length > 0) {
+							codeMatchers.push(
+								new CodeBlockMatcher(includeLanguages)
+							);
+						}
+
+						if (codeMatchers.length === 0)
+							return [new CodeBlockMatcher()];
+						if (codeMatchers.length === 1) return codeMatchers;
+						return [new AndMatcher(codeMatchers)];
+					})()
 				: []),
-			...(hasTagFilter ? [new TagMatcher(tagFilter)] : []),
 			...(hasTextPattern
 				? invertTextPattern
 					? [new NotMatcher(new TextMatcher(textPattern))]

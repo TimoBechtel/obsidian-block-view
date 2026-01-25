@@ -235,7 +235,7 @@ describe("CodeBlockMatcher", () => {
 	});
 
 	test("matches specific language", () => {
-		const matcher = new CodeBlockMatcher("python");
+		const matcher = new CodeBlockMatcher(["python"]);
 		expect(
 			matcher.matches(createContext("```python", { section: "code" }))
 		).toBe(true);
@@ -260,13 +260,28 @@ describe("CodeBlockMatcher", () => {
 	});
 
 	test("does not match code block without language when language specified", () => {
-		const matcher = new CodeBlockMatcher("python");
+		const matcher = new CodeBlockMatcher(["python"]);
 		expect(
 			matcher.matches(
 				createContext("```", {
 					section: "code",
 				})
 			)
+		).toBe(false);
+	});
+
+	test("matches multiple languages", () => {
+		const matcher = new CodeBlockMatcher(["ts", "js"]);
+		expect(
+			matcher.matches(createContext("```ts", { section: "code" }))
+		).toBe(true);
+
+		expect(
+			matcher.matches(createContext("```js", { section: "code" }))
+		).toBe(true);
+
+		expect(
+			matcher.matches(createContext("```python", { section: "code" }))
 		).toBe(false);
 	});
 });
