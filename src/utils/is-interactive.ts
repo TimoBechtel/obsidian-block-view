@@ -12,7 +12,6 @@ const interactiveSelector = [
 
 	// other elements
 	"svg", // icons
-	"img", // to allow image preview
 
 	"[onclick]",
 	"[onmousedown]",
