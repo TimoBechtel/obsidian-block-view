@@ -3,7 +3,7 @@ import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import type { CachedMetadata } from "obsidian";
 import { parseBlocks } from "./block-parser";
-import { TagMatcher } from "./matchers";
+import { AndMatcher, NotMatcher, TagMatcher, TaskMatcher } from "./matchers";
 
 const exampleNote = readFileSync("test/example-note.md", "utf-8");
 const exampleMetadata: CachedMetadata = JSON.parse(
@@ -65,6 +65,27 @@ describe("extractBlocks", () => {
 		} else {
 			throw new Error("List block not found");
 		}
+	});
+
+	test("excludes list items without tags", () => {
+		const matcher = new AndMatcher([
+			new TaskMatcher("any"),
+			new NotMatcher(new TagMatcher(["#log"])),
+		]);
+		const blocks = parseBlocks(exampleNote, exampleMetadata, matcher);
+
+		// includes all task items but not the ones with #log
+		expect(
+			blocks.some((block) => block.content.includes("- [ ] Regular task"))
+		).toBe(true);
+		expect(
+			blocks.some((block) => block.content.includes("- [ ] Next task"))
+		).toBe(true);
+		expect(
+			blocks.some((block) =>
+				block.content.includes("- [ ] Incomplete task with #log")
+			)
+		).toBe(false);
 	});
 
 	test("extracts numbered list blocks with tags", () => {

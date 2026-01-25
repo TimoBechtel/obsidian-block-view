@@ -45,20 +45,6 @@ class ListBlockParser extends SectionBlockParser {
 
 		if (listItemsInSection.length === 0) return null;
 
-		if (
-			!matcher.matches({
-				range: {
-					start: section.position.start.line,
-					end: section.position.end.line,
-				},
-				sectionType: section.type,
-				lines,
-				cache,
-			})
-		) {
-			return null;
-		}
-
 		const blocks: ParsedBlock[] = [];
 
 		let lastProcessedLine = -1;
