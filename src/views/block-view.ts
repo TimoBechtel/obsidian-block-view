@@ -602,6 +602,14 @@ export class BlockView extends BasesView implements HoverParent {
 			for (const propertyId of selectedProperties) {
 				const { type, name } = parsePropertyId(propertyId);
 
+				if (!firstProp) {
+					headerEl.createSpan({
+						cls: "block-view-separator",
+						text: "|",
+					});
+				}
+				firstProp = false;
+
 				if (name === "name" && type === "file") {
 					headerEl.createEl("a", {
 						text: file.name,
@@ -613,14 +621,6 @@ export class BlockView extends BasesView implements HoverParent {
 
 				const value = entry.getValue(propertyId);
 				if (!value) continue;
-
-				if (!firstProp) {
-					headerEl.createSpan({
-						cls: "block-view-separator",
-						text: "|",
-					});
-				}
-				firstProp = false;
 
 				const valueEl = headerEl.createSpan(
 					"block-view-property-value"
