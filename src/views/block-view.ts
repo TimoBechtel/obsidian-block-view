@@ -35,6 +35,7 @@ type BlockRenderInfo = {
 
 export class BlockView extends BasesView implements HoverParent {
 	readonly type = BlockViewType;
+	private statusBarEl: HTMLElement;
 	private containerEl: HTMLElement;
 	private intersectionObserver: IntersectionObserver;
 
@@ -56,6 +57,7 @@ export class BlockView extends BasesView implements HoverParent {
 
 	constructor(controller: QueryController, parentEl: HTMLElement) {
 		super(controller);
+		this.statusBarEl = parentEl.createDiv("block-view-statusbar");
 		this.containerEl = parentEl.createDiv("block-view-container");
 
 		/**
@@ -99,6 +101,7 @@ export class BlockView extends BasesView implements HoverParent {
 
 		if (!context.hasActiveFilters) {
 			this.renderEmptyPlaceholder();
+			this.updateStatusBar(0, 0);
 			this.containerEl.setCssStyles({ minHeight: "" });
 			return;
 		}
@@ -119,12 +122,15 @@ export class BlockView extends BasesView implements HoverParent {
 			filterTableRows,
 			maxBlocksPerFile,
 		} = context;
+		let totalBlocks = 0;
+		let totalFiles = 0;
 		for (const group of this.data.groupedData) {
 			const groupEl = this.containerEl.createDiv("block-view-group");
 			let hasContent = false;
 
 			for (const entry of group.entries) {
 				const file = entry.file;
+				totalFiles++;
 
 				if (!showAllFiles && file.extension !== "md") {
 					continue;
@@ -166,6 +172,7 @@ export class BlockView extends BasesView implements HoverParent {
 					context,
 					fileTaskLines
 				);
+				totalBlocks += blocks.length;
 			}
 
 			if (!hasContent) {
@@ -183,6 +190,7 @@ export class BlockView extends BasesView implements HoverParent {
 				groupEl.insertBefore(groupHeaderEl, groupEl.firstChild);
 			}
 		}
+		this.updateStatusBar(totalBlocks, totalFiles);
 	}
 
 	/**
@@ -430,6 +438,10 @@ export class BlockView extends BasesView implements HoverParent {
 			file.path,
 			this
 		);
+	}
+
+	private updateStatusBar(blockCount: number, fileCount: number) {
+		this.statusBarEl.textContent = `${blockCount} block${blockCount !== 1 ? "s" : ""} across ${fileCount} file${fileCount !== 1 ? "s" : ""}`;
 	}
 
 	private renderEmptyPlaceholder() {

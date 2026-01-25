@@ -4,6 +4,12 @@ name: Block View
 id: block-view
 settings:
 	-
+		id: block-view-hide-statusbar
+		title: Hide status bar
+		description: Hide the status bar that shows block and file counts
+		type: class-toggle
+		default: false
+	-
 		id: block-view-blocks-indent
 		title: Block indent
 		description: Left indent for blocks container
@@ -142,4 +148,23 @@ body {
 
 .block-view-block-placeholder {
 	min-height: 3rem;
+}
+
+.block-view-statusbar {
+	position: sticky;
+	top: 0;
+	z-index: 10;
+	padding: 0 0.75rem;
+	height: 1.5rem;
+	display: flex;
+	align-items: center;
+	background-color: var(--background-secondary);
+	border-bottom: var(--border-width) solid var(--background-modifier-border);
+	font-size: var(--font-ui-smaller);
+	color: var(--text-muted);
+	line-height: 1;
+}
+
+.block-view-hide-statusbar .block-view-statusbar {
+	display: none;
 }
