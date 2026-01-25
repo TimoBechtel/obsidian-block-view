@@ -290,7 +290,7 @@ class TableBlockParser extends SectionBlockParser {
 			};
 		}
 
-		const blocks: ParsedBlock[] = [];
+		const matchedTableRows: string[] = [];
 		for (let i = 2; i < tableLines.length; i++) {
 			const dataLine = tableLines[i];
 			if (!dataLine) continue;
@@ -306,18 +306,25 @@ class TableBlockParser extends SectionBlockParser {
 					cache,
 				})
 			) {
-				const blockLines = [headerLine, separatorLine, dataLine];
-				blocks.push({
-					content: blockLines.join("\n"),
-					startLine: section.position.start.line,
-					endLine: section.position.start.line + i,
-				});
+				matchedTableRows.push(dataLine);
 			}
 		}
 
-		return blocks.length > 0
-			? { blocks, lastSectionIndex: startIndex }
-			: null;
+		if (matchedTableRows.length === 0) {
+			return null;
+		}
+
+		const blockLines = [headerLine, separatorLine, ...matchedTableRows];
+		return {
+			blocks: [
+				{
+					content: blockLines.join("\n"),
+					startLine: section.position.start.line,
+					endLine: section.position.end.line,
+				},
+			],
+			lastSectionIndex: startIndex,
+		};
 	}
 }
 
