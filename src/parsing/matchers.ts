@@ -62,7 +62,7 @@ export class TextMatcher implements Matcher {
 				return;
 			}
 		}
-		
+
 		this.pattern = pattern;
 	}
 
@@ -80,7 +80,7 @@ export class TextMatcher implements Matcher {
 			if (
 				this.pattern &&
 				// case insensitive matching
-				line.toLowerCase().includes(this.pattern.toLowerCase())
+				line.trim().toLowerCase().startsWith(this.pattern.toLowerCase())
 			) {
 				return true;
 			}
