@@ -61,6 +61,12 @@ export default class BlockViewPlugin extends Plugin {
 					shouldHide: (config) => !config.get("filterCodeBlocks"),
 				},
 				{
+					type: "toggle",
+					displayName: "Tables",
+					key: "filterTables",
+					default: false,
+				},
+				{
 					type: "multitext",
 					displayName: "Tags",
 					key: "tagFilter",

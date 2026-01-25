@@ -16,6 +16,7 @@ import {
 	NotMatcher,
 	OrMatcher,
 	QuoteMatcher,
+	TableMatcher,
 	TagMatcher,
 	TaskMatcher,
 	TextMatcher,
@@ -462,6 +463,7 @@ export class BlockView extends BasesView implements HoverParent {
 		const filterCodeBlocksLanguages = (this.config.get(
 			"filterCodeBlocksLanguages"
 		) as string[]) ?? ["-base"];
+		const filterTables = !!this.config.get("filterTables");
 		const tagFilter = (this.config.get("tagFilter") as string[]) ?? [];
 		const textPattern = String(
 			(this.config.get("textPattern") as string) ?? ""
@@ -512,6 +514,7 @@ export class BlockView extends BasesView implements HoverParent {
 		const matchers: Matcher[] = [
 			...(filterTasks ? [new TaskMatcher(filterTasksType)] : []),
 			...(filterQuotes ? [new QuoteMatcher(filterQuotesType)] : []),
+			...(filterTables ? [new TableMatcher()] : []),
 			...(() => {
 				const tagMatchers: Matcher[] = [];
 				if (excludeTags.length > 0) {

@@ -90,22 +90,6 @@ export class TextMatcher implements Matcher {
 	}
 }
 
-export class AndMatcher implements Matcher {
-	constructor(private matchers: Matcher[]) {}
-
-	matches(context: MatchContext): boolean {
-		return this.matchers.every((matcher) => matcher.matches(context));
-	}
-}
-
-export class OrMatcher implements Matcher {
-	constructor(private matchers: Matcher[]) {}
-
-	matches(context: MatchContext): boolean {
-		return this.matchers.some((matcher) => matcher.matches(context));
-	}
-}
-
 export class TaskMatcher implements Matcher {
 	constructor(private type: "any" | "incomplete" | "complete") {}
 
@@ -173,10 +157,32 @@ export class CodeBlockMatcher implements Matcher {
 	}
 }
 
+export class TableMatcher implements Matcher {
+	matches({ sectionType }: MatchContext): boolean {
+		return sectionType === "table";
+	}
+}
+
 export class NotMatcher implements Matcher {
 	constructor(private matcher: Matcher) {}
 
 	matches(context: MatchContext): boolean {
 		return !this.matcher.matches(context);
+	}
+}
+
+export class AndMatcher implements Matcher {
+	constructor(private matchers: Matcher[]) {}
+
+	matches(context: MatchContext): boolean {
+		return this.matchers.every((matcher) => matcher.matches(context));
+	}
+}
+
+export class OrMatcher implements Matcher {
+	constructor(private matchers: Matcher[]) {}
+
+	matches(context: MatchContext): boolean {
+		return this.matchers.some((matcher) => matcher.matches(context));
 	}
 }
