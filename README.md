@@ -147,7 +147,8 @@ You can configure these settings via the view options panel in the Bases view.
 | :------------------ | :---------------------------------------------------------------------------- |
 | **Tasks**           | Toggle to show task items (`- [ ]`).                                          |
 | **Show**            | If tasks are enabled, choose `Any`, `Incomplete`, or `Complete`.              |
-| **Quotes**          | Toggle to show Blockquotes (`> text`) and Callouts.                           |
+| **Quotes**          | Toggle to show Blockquotes (`> text`) and/or Callouts.                        |
+| **Quote type**      | If quotes are enabled, choose `Any`, `Blockquotes`, or `Callouts`.            |
 | **Code Blocks**     | Toggle to show code blocks.                                                   |
 | **Language**        | Filter code blocks by language (e.g., `js`, `python`).                        |
 | **Include tags**    | A list of tags to filter by. Supports nested tags.                            |

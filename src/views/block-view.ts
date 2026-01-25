@@ -452,6 +452,11 @@ export class BlockView extends BasesView implements HoverParent {
 				| "incomplete"
 				| "complete") ?? "any";
 		const filterQuotes = !!this.config.get("filterQuotes");
+		const filterQuotesType =
+			(this.config.get("filterQuotesType") as
+				| "any"
+				| "quotes"
+				| "callouts") ?? "quotes";
 		const filterCodeBlocks = !!this.config.get("filterCodeBlocks");
 		const filterCodeBlocksLanguage = String(
 			(this.config.get("filterCodeBlocksLanguage") as string) ?? ""
@@ -479,7 +484,7 @@ export class BlockView extends BasesView implements HoverParent {
 
 		const matchers: Matcher[] = [
 			...(filterTasks ? [new TaskMatcher(filterTasksType)] : []),
-			...(filterQuotes ? [new QuoteMatcher()] : []),
+			...(filterQuotes ? [new QuoteMatcher(filterQuotesType)] : []),
 			...(filterCodeBlocks
 				? [new CodeBlockMatcher(filterCodeBlocksLanguage)]
 				: []),

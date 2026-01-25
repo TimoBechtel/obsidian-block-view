@@ -35,6 +35,18 @@ export default class BlockViewPlugin extends Plugin {
 					default: false,
 				},
 				{
+					type: "dropdown",
+					displayName: "Quote type",
+					key: "filterQuotesType",
+					default: "quotes",
+					options: {
+						any: "Any",
+						quotes: "Blockquotes",
+						callouts: "Callouts",
+					} as Record<string, string>,
+					shouldHide: (config) => !config.get("filterQuotes"),
+				},
+				{
 					type: "toggle",
 					displayName: "Code blocks",
 					key: "filterCodeBlocks",

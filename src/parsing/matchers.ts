@@ -102,8 +102,16 @@ export class TaskMatcher implements Matcher {
 }
 
 export class QuoteMatcher implements Matcher {
+	constructor(private type: "any" | "quotes" | "callouts") {}
+
 	matches({ sectionType }: MatchContext): boolean {
-		return sectionType === "blockquote" || sectionType === "callout";
+		if (this.type === "any") {
+			return sectionType === "blockquote" || sectionType === "callout";
+		}
+		if (this.type === "quotes") {
+			return sectionType === "blockquote";
+		}
+		return sectionType === "callout";
 	}
 }
 
