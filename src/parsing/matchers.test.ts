@@ -1,56 +1,57 @@
 import { describe, expect, test } from "bun:test";
 import type { CachedMetadata, SectionCache } from "obsidian";
 import {
+	AndMatcher,
 	CodeBlockMatcher,
+	NotMatcher,
 	TagMatcher,
 	TaskMatcher,
 	type MatchContext,
 } from "./matchers";
 
 function createContext(
-	line: string,
-	lineNumber: number = 0,
+	content: string,
 	options: {
 		section?: SectionCache["type"];
-		tags?: string[];
-		taskStatus?: " " | "x" | "X";
+		tags?: Array<{ tag: string; line?: number }>;
+		tasks?: Array<{ status: " " | "x" | "X"; line?: number }>;
 	} = {}
 ): MatchContext {
+	const lines = content.split("\n");
+
+	const startLine = 0;
+	const sectionEndLine = startLine + lines.length - 1;
+
 	const cache: Partial<CachedMetadata> = {};
 
 	if (options.tags) {
-		cache.tags = options.tags.map((tag) => ({
+		cache.tags = options.tags.map(({ tag, line = startLine }) => ({
 			tag,
 			position: {
-				start: { line: lineNumber, col: 0, offset: 0 },
-				end: { line: lineNumber, col: 0, offset: 0 },
+				start: { line, col: 0, offset: 0 },
+				end: { line, col: 0, offset: 0 },
 			},
 		}));
 	}
 
-	if (options.taskStatus !== undefined) {
-		cache.listItems = [
-			{
-				task: options.taskStatus,
-				position: {
-					start: { line: lineNumber, col: 0, offset: 0 },
-					end: { line: lineNumber, col: 0, offset: 0 },
-				},
-				parent: -1,
+	if (options.tasks) {
+		cache.listItems = options.tasks.map(({ status, line = startLine }) => ({
+			task: status,
+			position: {
+				start: { line, col: 0, offset: 0 },
+				end: { line, col: 0, offset: 0 },
 			},
-		];
+			parent: -1,
+		}));
 	}
 
 	return {
-		line,
-		lineNumber,
-		section: {
-			type: options.section ?? "paragraph",
-			position: {
-				start: { line: lineNumber, col: 0, offset: 0 },
-				end: { line: lineNumber, col: 0, offset: 0 },
-			},
+		range: {
+			start: startLine,
+			end: sectionEndLine,
 		},
+		sectionType: options.section ?? "paragraph",
+		lines,
 		cache: cache as CachedMetadata,
 	};
 }
@@ -60,9 +61,8 @@ describe("TagMatcher", () => {
 		const matcher = new TagMatcher(["#log"]);
 		expect(
 			matcher.matches(
-				createContext("This has #log tag", 0, {
-					tags: ["#log"],
-					section: "paragraph",
+				createContext("This has #log tag", {
+					tags: [{ tag: "#log" }],
 				})
 			)
 		).toBe(true);
@@ -72,17 +72,16 @@ describe("TagMatcher", () => {
 		const matcher = new TagMatcher(["#log", "#todo"]);
 		expect(
 			matcher.matches(
-				createContext("This has #log", 0, {
-					tags: ["#log"],
-					section: "paragraph",
+				createContext("This has #log", {
+					tags: [{ tag: "#log" }],
 				})
 			)
 		).toBe(true);
+
 		expect(
 			matcher.matches(
-				createContext("This has #todo", 0, {
-					tags: ["#todo"],
-					section: "paragraph",
+				createContext("This has #todo", {
+					tags: [{ tag: "#todo" }],
 				})
 			)
 		).toBe(true);
@@ -92,9 +91,8 @@ describe("TagMatcher", () => {
 		const matcher = new TagMatcher(["log"]);
 		expect(
 			matcher.matches(
-				createContext("This has #log", 0, {
-					tags: ["#log"],
-					section: "paragraph",
+				createContext("This has #log", {
+					tags: [{ tag: "#log" }],
 				})
 			)
 		).toBe(true);
@@ -104,17 +102,16 @@ describe("TagMatcher", () => {
 		const matcher = new TagMatcher(["#Log"]);
 		expect(
 			matcher.matches(
-				createContext("This has #log", 0, {
-					tags: ["#log"],
-					section: "paragraph",
+				createContext("This has #log", {
+					tags: [{ tag: "#log" }],
 				})
 			)
 		).toBe(true);
+
 		expect(
 			matcher.matches(
-				createContext("This has #LOG", 0, {
-					tags: ["#LOG"],
-					section: "paragraph",
+				createContext("This has #LOG", {
+					tags: [{ tag: "#LOG" }],
 				})
 			)
 		).toBe(true);
@@ -124,12 +121,27 @@ describe("TagMatcher", () => {
 		const matcher = new TagMatcher([]);
 		expect(
 			matcher.matches(
-				createContext("This has #log", 0, {
-					tags: ["#log"],
-					section: "paragraph",
+				createContext("This has #log", {
+					tags: [{ tag: "#log" }],
 				})
 			)
 		).toBe(false);
+	});
+
+	test("returns first match line in section", () => {
+		const matcher = new TagMatcher(["#log"]);
+		const section = createContext(
+			`Line 1
+Line 2 #log
+Line 3 #log`,
+			{
+				tags: [
+					{ tag: "#log", line: 1 },
+					{ tag: "#log", line: 2 },
+				],
+			}
+		);
+		expect(matcher.matches(section)).toBe(true);
 	});
 });
 
@@ -138,16 +150,17 @@ describe("TaskMatcher", () => {
 		const matcher = new TaskMatcher("any");
 		expect(
 			matcher.matches(
-				createContext("- [ ] incomplete task", 0, {
-					taskStatus: " ",
+				createContext("- [ ] incomplete task", {
+					tasks: [{ status: " " }],
 					section: "list",
 				})
 			)
 		).toBe(true);
+
 		expect(
 			matcher.matches(
-				createContext("- [x] complete task", 0, {
-					taskStatus: "x",
+				createContext("- [x] complete task", {
+					tasks: [{ status: "x" }],
 					section: "list",
 				})
 			)
@@ -158,16 +171,17 @@ describe("TaskMatcher", () => {
 		const matcher = new TaskMatcher("incomplete");
 		expect(
 			matcher.matches(
-				createContext("- [ ] incomplete task", 0, {
-					taskStatus: " ",
+				createContext("- [ ] incomplete task", {
+					tasks: [{ status: " " }],
 					section: "list",
 				})
 			)
 		).toBe(true);
+
 		expect(
 			matcher.matches(
-				createContext("- [x] complete task", 0, {
-					taskStatus: "x",
+				createContext("- [x] complete task", {
+					tasks: [{ status: "x" }],
 					section: "list",
 				})
 			)
@@ -178,16 +192,17 @@ describe("TaskMatcher", () => {
 		const matcher = new TaskMatcher("complete");
 		expect(
 			matcher.matches(
-				createContext("- [ ] incomplete task", 0, {
-					taskStatus: " ",
+				createContext("- [ ] incomplete task", {
+					tasks: [{ status: " " }],
 					section: "list",
 				})
 			)
 		).toBe(false);
+
 		expect(
 			matcher.matches(
-				createContext("- [x] complete task", 0, {
-					taskStatus: "x",
+				createContext("- [x] complete task", {
+					tasks: [{ status: "x" }],
 					section: "list",
 				})
 			)
@@ -198,7 +213,9 @@ describe("TaskMatcher", () => {
 		const matcher = new TaskMatcher("any");
 		expect(
 			matcher.matches(
-				createContext("- regular list item", 0, { section: "list" })
+				createContext("- regular list item", {
+					section: "list",
+				})
 			)
 		).toBe(false);
 	});
@@ -207,34 +224,36 @@ describe("TaskMatcher", () => {
 describe("CodeBlockMatcher", () => {
 	test("matches any code block when no language specified", () => {
 		const matcher = new CodeBlockMatcher();
+		expect(matcher.matches(createContext("```", { section: "code" }))).toBe(
+			true
+		);
+
 		expect(
-			matcher.matches(createContext("```", 0, { section: "code" }))
-		).toBe(true);
-		expect(
-			matcher.matches(createContext("```python", 0, { section: "code" }))
+			matcher.matches(createContext("```python", { section: "code" }))
 		).toBe(true);
 	});
 
 	test("matches specific language", () => {
 		const matcher = new CodeBlockMatcher("python");
 		expect(
-			matcher.matches(createContext("```python", 0, { section: "code" }))
+			matcher.matches(createContext("```python", { section: "code" }))
 		).toBe(true);
+
+		expect(
+			matcher.matches(createContext("  ```python", { section: "code" }))
+		).toBe(true);
+
 		expect(
 			matcher.matches(
-				createContext("  ```python", 0, { section: "code" })
-			)
-		).toBe(true);
-		expect(
-			matcher.matches(
-				createContext('```python title="example.py"', 0, {
+				createContext('```python title="example.py"', {
 					section: "code",
 				})
 			)
 		).toBe(true);
+
 		expect(
 			matcher.matches(
-				createContext("```python {1-5}", 0, { section: "code" })
+				createContext("```python {1-5}", { section: "code" })
 			)
 		).toBe(true);
 	});
@@ -242,7 +261,49 @@ describe("CodeBlockMatcher", () => {
 	test("does not match code block without language when language specified", () => {
 		const matcher = new CodeBlockMatcher("python");
 		expect(
-			matcher.matches(createContext("```", 0, { section: "code" }))
+			matcher.matches(
+				createContext("```", {
+					section: "code",
+				})
+			)
 		).toBe(false);
+	});
+});
+
+describe("NotMatcher", () => {
+	test("inverts tag matcher for paragraph with tag", () => {
+		const matcher = new NotMatcher(new TagMatcher(["#log"]));
+		expect(
+			matcher.matches(
+				createContext("This paragraph has #log tag", {
+					tags: [{ tag: "#log" }],
+				})
+			)
+		).toBe(false);
+	});
+
+	test("checks all matchers and excludes if notmatcher does not match", () => {
+		const matcher = new AndMatcher([
+			new TagMatcher(["#log"]),
+			new NotMatcher(new TagMatcher(["#archive"])),
+		]);
+		expect(
+			matcher.matches(
+				createContext(
+					"This has #log and #archive and should not be included",
+					{
+						tags: [{ tag: "#log" }, { tag: "#archive", line: 0 }],
+					}
+				)
+			)
+		).toBe(false);
+
+		expect(
+			matcher.matches(
+				createContext("This has just #log and should be included", {
+					tags: [{ tag: "#log" }],
+				})
+			)
+		).toBe(true);
 	});
 });

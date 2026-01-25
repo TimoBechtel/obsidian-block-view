@@ -1,5 +1,5 @@
 import type { CachedMetadata, ListItemCache, SectionCache } from "obsidian";
-import type { LineMatcher } from "./matchers";
+import type { Matcher } from "./matchers";
 
 export type ParsedBlock = {
 	content: string;
@@ -10,7 +10,7 @@ export type ParsedBlock = {
 type ExtractOptions = {
 	startIndex: number;
 	lines: string[];
-	matcher: LineMatcher;
+	matcher: Matcher;
 	cache: CachedMetadata;
 };
 
@@ -45,6 +45,20 @@ class ListBlockParser extends SectionBlockParser {
 
 		if (listItemsInSection.length === 0) return null;
 
+		if (
+			!matcher.matches({
+				range: {
+					start: section.position.start.line,
+					end: section.position.end.line,
+				},
+				sectionType: section.type,
+				lines,
+				cache,
+			})
+		) {
+			return null;
+		}
+
 		const blocks: ParsedBlock[] = [];
 
 		let lastProcessedLine = -1;
@@ -59,10 +73,13 @@ class ListBlockParser extends SectionBlockParser {
 
 			if (
 				!matcher.matches({
-					line: lines[startLine] ?? "",
-					lineNumber: startLine,
+					range: {
+						start: item.position.start.line,
+						end: item.position.end.line,
+					},
+					sectionType: section.type,
+					lines,
 					cache,
-					section,
 				})
 			) {
 				continue;
@@ -145,10 +162,13 @@ class HeadingBlockParser extends SectionBlockParser {
 
 		if (
 			!matcher.matches({
-				line: headingLine,
-				lineNumber: section.position.start.line,
+				range: {
+					start: section.position.start.line,
+					end: section.position.end.line,
+				},
+				sectionType: section.type,
+				lines,
 				cache,
-				section,
 			})
 		) {
 			return null;
@@ -209,15 +229,15 @@ class CodeBlockParser extends SectionBlockParser {
 		const section = sections[startIndex];
 		if (!section) return null;
 
-		const fenceLine = lines[section.position.start.line];
-		if (!fenceLine) return null;
-
 		if (
 			!matcher.matches({
-				line: fenceLine,
-				lineNumber: section.position.start.line,
+				range: {
+					start: section.position.start.line,
+					end: section.position.end.line,
+				},
+				sectionType: section.type,
+				lines,
 				cache,
-				section,
 			})
 		) {
 			return null;
@@ -270,10 +290,13 @@ class TableBlockParser extends SectionBlockParser {
 
 		if (
 			matcher.matches({
-				line: headerLine,
-				lineNumber: section.position.start.line,
+				range: {
+					start: section.position.start.line,
+					end: section.position.start.line,
+				},
+				sectionType: section.type,
+				lines,
 				cache,
-				section,
 			})
 		) {
 			return {
@@ -295,10 +318,13 @@ class TableBlockParser extends SectionBlockParser {
 
 			if (
 				matcher.matches({
-					line: dataLine,
-					lineNumber: section.position.start.line + i,
+					range: {
+						start: section.position.start.line + i,
+						end: section.position.start.line + i,
+					},
+					sectionType: section.type,
+					lines,
 					cache,
-					section,
 				})
 			) {
 				const blockLines = [headerLine, separatorLine, dataLine];
@@ -331,18 +357,19 @@ class DefaultSectionParser extends SectionBlockParser {
 		const section = sections[startIndex];
 		if (!section) return null;
 
-		const hasMatch = lines
-			.slice(section.position.start.line, section.position.end.line + 1)
-			.some((line, idx) => {
-				return matcher.matches({
-					line: line ?? "",
-					lineNumber: section.position.start.line + idx,
-					cache,
-					section,
-				});
-			});
-
-		if (!hasMatch) return null;
+		if (
+			!matcher.matches({
+				range: {
+					start: section.position.start.line,
+					end: section.position.end.line,
+				},
+				sectionType: section.type,
+				lines,
+				cache,
+			})
+		) {
+			return null;
+		}
 
 		let endLine = section.position.end.line;
 		let lastSectionIndex = startIndex;
@@ -380,7 +407,7 @@ type ParseOptions = {
 export function parseBlocks(
 	content: string,
 	metadata: CachedMetadata,
-	matcher: LineMatcher,
+	matcher: Matcher,
 	options?: ParseOptions
 ): ParsedBlock[] {
 	if (!metadata?.sections) return [];

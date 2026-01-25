@@ -1,17 +1,20 @@
 import type { CachedMetadata, SectionCache } from "obsidian";
 
-export interface MatchContext {
-	line: string;
-	lineNumber: number;
-	section: SectionCache;
+export type MatchContext = {
+	range: {
+		start: number;
+		end: number;
+	};
+	sectionType: SectionCache["type"];
+	lines: string[];
 	cache: CachedMetadata;
-}
+};
 
-export interface LineMatcher {
+export interface Matcher {
 	matches(context: MatchContext): boolean;
 }
 
-export class TagMatcher implements LineMatcher {
+export class TagMatcher implements Matcher {
 	private targetTags: string[];
 
 	constructor(tags: string[]) {
@@ -21,18 +24,19 @@ export class TagMatcher implements LineMatcher {
 		});
 	}
 
-	matches({ cache, lineNumber }: MatchContext): boolean {
-		const tagsOnLine = cache.tags?.filter(
-			(t) =>
-				t.position.start.line === lineNumber &&
-				this.targetTags.includes(t.tag.toLowerCase())
+	matches({ cache, range }: MatchContext): boolean {
+		return (
+			cache.tags?.some(
+				(t) =>
+					t.position.start.line >= range.start &&
+					t.position.start.line <= range.end &&
+					this.targetTags.includes(t.tag.toLowerCase())
+			) ?? false
 		);
-
-		return tagsOnLine !== undefined && tagsOnLine.length > 0;
 	}
 }
 
-export class RegexMatcher implements LineMatcher {
+export class RegexMatcher implements Matcher {
 	private regex: RegExp | null;
 
 	constructor(pattern: string) {
@@ -47,62 +51,71 @@ export class RegexMatcher implements LineMatcher {
 		}
 	}
 
-	matches({ line }: MatchContext): boolean {
+	matches({ range, lines }: MatchContext): boolean {
 		if (!this.regex) {
 			return false;
 		}
-		return this.regex.test(line);
+
+		for (let i = range.start; i <= range.end; i++) {
+			const line = lines[i];
+			if (line && this.regex.test(line)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }
 
-export class AndMatcher implements LineMatcher {
-	constructor(private matchers: LineMatcher[]) {}
+export class AndMatcher implements Matcher {
+	constructor(private matchers: Matcher[]) {}
 
 	matches(context: MatchContext): boolean {
 		return this.matchers.every((matcher) => matcher.matches(context));
 	}
 }
 
-export class OrMatcher implements LineMatcher {
-	constructor(private matchers: LineMatcher[]) {}
+export class OrMatcher implements Matcher {
+	constructor(private matchers: Matcher[]) {}
 
 	matches(context: MatchContext): boolean {
 		return this.matchers.some((matcher) => matcher.matches(context));
 	}
 }
 
-export class TaskMatcher implements LineMatcher {
+export class TaskMatcher implements Matcher {
 	constructor(private type: "any" | "incomplete" | "complete") {}
 
-	matches({ cache, lineNumber }: MatchContext): boolean {
-		const listItem = cache.listItems?.find(
-			(item) =>
-				item.position.start.line === lineNumber &&
-				item.task !== undefined
+	matches({ range, cache }: MatchContext): boolean {
+		return (
+			cache.listItems?.some(
+				(item) =>
+					item.position.start.line >= range.start &&
+					item.position.start.line <= range.end &&
+					item.task !== undefined &&
+					(this.type === "any" ||
+						(this.type === "incomplete" && item.task === " ") ||
+						(this.type === "complete" && item.task !== " "))
+			) ?? false
 		);
-		if (!listItem) return false;
-		if (this.type === "any") return true;
-		if (this.type === "incomplete") return listItem.task === " ";
-		if (this.type === "complete") return listItem.task !== " ";
-		return false;
 	}
 }
 
-export class QuoteMatcher implements LineMatcher {
-	matches({ section }: MatchContext): boolean {
-		return section.type === "blockquote" || section.type === "callout";
+export class QuoteMatcher implements Matcher {
+	matches({ sectionType }: MatchContext): boolean {
+		return sectionType === "blockquote" || sectionType === "callout";
 	}
 }
 
-export class CodeBlockMatcher implements LineMatcher {
+export class CodeBlockMatcher implements Matcher {
 	private language: string | null;
 
 	constructor(language?: string) {
 		this.language = language?.trim() || null;
 	}
 
-	matches({ line, section }: MatchContext): boolean {
-		if (section.type !== "code") {
+	matches({ range, sectionType, lines }: MatchContext): boolean {
+		if (sectionType !== "code") {
 			return false;
 		}
 
@@ -110,12 +123,25 @@ export class CodeBlockMatcher implements LineMatcher {
 			return true;
 		}
 
-		const trimmed = line.trim();
+		const fenceLine = lines[range.start];
+		if (!fenceLine) {
+			return false;
+		}
+
+		const trimmed = fenceLine.trim();
 		const afterFence = trimmed.slice(3).trim().split(/\s+/)[0];
 		if (!afterFence) {
 			return false;
 		}
 
 		return afterFence.toLowerCase() === this.language.toLowerCase();
+	}
+}
+
+export class NotMatcher implements Matcher {
+	constructor(private matcher: Matcher) {}
+
+	matches(context: MatchContext): boolean {
+		return !this.matcher.matches(context);
 	}
 }

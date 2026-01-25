@@ -18,7 +18,7 @@ import {
 	RegexMatcher,
 	TagMatcher,
 	TaskMatcher,
-	type LineMatcher,
+	type Matcher,
 } from "../parsing/matchers";
 import { debounceLeading } from "../utils/debounce";
 import { hasTextSelection, isInteractiveTarget } from "../utils/is-interactive";
@@ -477,7 +477,7 @@ export class BlockView extends BasesView implements HoverParent {
 		const hasTagFilter = tagFilter && tagFilter.length > 0;
 		const hasRegexPattern = regexPattern && regexPattern.trim() !== "";
 
-		const matchers: LineMatcher[] = [
+		const matchers: Matcher[] = [
 			...(filterTasks ? [new TaskMatcher(filterTasksType)] : []),
 			...(filterQuotes ? [new QuoteMatcher()] : []),
 			...(filterCodeBlocks

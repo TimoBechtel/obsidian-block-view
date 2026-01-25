@@ -53,6 +53,18 @@ describe("extractBlocks", () => {
 		expect(listBlock?.content).toContain("    - Deeply nested");
 		expect(listBlock?.content).toContain("  - Back to level 2");
 		expect(listBlock?.content).not.toContain("- Next item at same level");
+
+		// next block
+		const blockIndex = listBlock ? blocks.indexOf(listBlock) : -1;
+		if (blockIndex !== -1) {
+			const nextBlock = blocks[blockIndex + 1];
+			expect(nextBlock).toBeDefined();
+			expect(nextBlock?.content).not.toContain(
+				"- Next item at same level (should not be included)"
+			);
+		} else {
+			throw new Error("List block not found");
+		}
 	});
 
 	test("extracts numbered list blocks with tags", () => {
