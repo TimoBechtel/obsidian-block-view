@@ -36,29 +36,52 @@ export class TagMatcher implements Matcher {
 	}
 }
 
-export class RegexMatcher implements Matcher {
+export class TextMatcher implements Matcher {
 	private regex: RegExp | null;
+	private pattern: string | null;
 
 	constructor(pattern: string) {
+		this.regex = null;
+		this.pattern = null;
+
 		if (!pattern) {
-			this.regex = null;
 			return;
 		}
-		try {
-			this.regex = new RegExp(pattern);
-		} catch {
-			this.regex = null;
+
+		const trimmed = pattern.trim();
+		if (trimmed.startsWith("/")) {
+			const secondSlashIndex = trimmed.indexOf("/", 1);
+			if (secondSlashIndex > 1) {
+				const regexPattern = trimmed.slice(1, secondSlashIndex);
+				const flags = trimmed.slice(secondSlashIndex + 1);
+				try {
+					this.regex = new RegExp(regexPattern, flags);
+				} catch {
+					this.regex = null;
+				}
+				return;
+			}
 		}
+		
+		this.pattern = pattern;
 	}
 
 	matches({ range, lines }: MatchContext): boolean {
-		if (!this.regex) {
+		if (!this.pattern && !this.regex) {
 			return false;
 		}
 
 		for (let i = range.start; i <= range.end; i++) {
 			const line = lines[i];
-			if (line && this.regex.test(line)) {
+			if (!line) continue;
+			if (this.regex && this.regex.test(line)) {
+				return true;
+			}
+			if (
+				this.pattern &&
+				// case insensitive matching
+				line.toLowerCase().includes(this.pattern.toLowerCase())
+			) {
 				return true;
 			}
 		}

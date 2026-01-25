@@ -6,6 +6,7 @@ import {
 	NotMatcher,
 	TagMatcher,
 	TaskMatcher,
+	TextMatcher,
 	type MatchContext,
 } from "./matchers";
 
@@ -267,6 +268,33 @@ describe("CodeBlockMatcher", () => {
 				})
 			)
 		).toBe(false);
+	});
+});
+
+describe("TextMatcher", () => {
+	test("matches simple string pattern", () => {
+		const matcher = new TextMatcher("hello");
+		expect(matcher.matches(createContext("hello world"))).toBe(true);
+		expect(matcher.matches(createContext("world"))).toBe(false);
+	});
+
+	test("string matching is case insensitive", () => {
+		const matcher = new TextMatcher("hello");
+		expect(matcher.matches(createContext("Hello world"))).toBe(true);
+		expect(matcher.matches(createContext("hello world"))).toBe(true);
+	});
+
+	test("matches regex pattern wrapped in slashes", () => {
+		const matcher = new TextMatcher("/^- \\[.*\\]/");
+		expect(matcher.matches(createContext("- [ ] task"))).toBe(true);
+		expect(matcher.matches(createContext("regular text"))).toBe(false);
+	});
+
+	test("supports regex flags for case insensitive matching", () => {
+		const matcher = new TextMatcher("/MEETING/i");
+		expect(matcher.matches(createContext("meeting notes"))).toBe(true);
+		expect(matcher.matches(createContext("MEETING NOTES"))).toBe(true);
+		expect(matcher.matches(createContext("notes"))).toBe(false);
 	});
 });
 

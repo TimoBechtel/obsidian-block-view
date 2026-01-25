@@ -153,7 +153,7 @@ You can configure these settings via the view options panel in the Bases view.
 | **Language**        | Filter code blocks by language (e.g., `js`, `python`).                        |
 | **Include tags**    | A list of tags to filter by. Supports nested tags.                            |
 | **Include if**      | `Any` (match at least one filter) or `All` (must match all active filters).   |
-| **Regex pattern**   | Advanced: specify a custom Regex pattern to match lines.                      |
+| **Text pattern**    | Match text or regex (wrap in `//`). Supports invert.                          |
 | **Display Options** | Customize table dividers, hide empty files, or strip non-matching table rows. |
 
 ## Installation

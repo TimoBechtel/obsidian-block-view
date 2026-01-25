@@ -67,6 +67,20 @@ export default class BlockViewPlugin extends Plugin {
 					default: [],
 				},
 				{
+					type: "text",
+					displayName: "Text pattern",
+					key: "textPattern",
+					default: "",
+					placeholder: 'meeting or "/^## todo/i"',
+				},
+				{
+					type: "toggle",
+					displayName: "Invert text filter",
+					key: "invertTextPattern",
+					default: false,
+					shouldHide: (config) => !config.get("textPattern"),
+				},
+				{
 					type: "dropdown",
 					displayName: "Include if",
 					key: "matchLogic",
@@ -75,19 +89,6 @@ export default class BlockViewPlugin extends Plugin {
 						any: "Any filter matches",
 						all: "All filters match",
 					} as Record<string, string>,
-				},
-				{
-					type: "group",
-					displayName: "Advanced",
-					items: [
-						{
-							type: "text",
-							displayName: "Regex pattern",
-							key: "regexPattern",
-							default: "",
-							placeholder: "e.g. `^- \\[.*\\]`",
-						},
-					],
 				},
 				{
 					type: "group",

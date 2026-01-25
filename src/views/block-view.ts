@@ -13,11 +13,12 @@ import { parseBlocks, type ParsedBlock } from "../parsing/block-parser";
 import {
 	AndMatcher,
 	CodeBlockMatcher,
+	NotMatcher,
 	OrMatcher,
 	QuoteMatcher,
-	RegexMatcher,
 	TagMatcher,
 	TaskMatcher,
+	TextMatcher,
 	type Matcher,
 } from "../parsing/matchers";
 import { debounceLeading } from "../utils/debounce";
@@ -462,9 +463,10 @@ export class BlockView extends BasesView implements HoverParent {
 			(this.config.get("filterCodeBlocksLanguage") as string) ?? ""
 		);
 		const tagFilter = (this.config.get("tagFilter") as string[]) ?? [];
-		const regexPattern = String(
-			(this.config.get("regexPattern") as string) ?? ""
+		const textPattern = String(
+			(this.config.get("textPattern") as string) ?? ""
 		);
+		const invertTextPattern = !!this.config.get("invertTextPattern");
 		const matchLogic =
 			(this.config.get("matchLogic") as "any" | "all") ?? "any";
 		const showAllFiles = !!this.config.get("showAllFiles");
@@ -480,7 +482,7 @@ export class BlockView extends BasesView implements HoverParent {
 		const selectedProperties = this.config.getOrder();
 
 		const hasTagFilter = tagFilter && tagFilter.length > 0;
-		const hasRegexPattern = regexPattern && regexPattern.trim() !== "";
+		const hasTextPattern = textPattern && textPattern.trim() !== "";
 
 		const matchers: Matcher[] = [
 			...(filterTasks ? [new TaskMatcher(filterTasksType)] : []),
@@ -489,7 +491,11 @@ export class BlockView extends BasesView implements HoverParent {
 				? [new CodeBlockMatcher(filterCodeBlocksLanguage)]
 				: []),
 			...(hasTagFilter ? [new TagMatcher(tagFilter)] : []),
-			...(hasRegexPattern ? [new RegexMatcher(regexPattern)] : []),
+			...(hasTextPattern
+				? invertTextPattern
+					? [new NotMatcher(new TextMatcher(textPattern))]
+					: [new TextMatcher(textPattern)]
+				: []),
 		];
 
 		const hasActiveFilters = matchers.length > 0;
