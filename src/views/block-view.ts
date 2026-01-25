@@ -476,9 +476,6 @@ export class BlockView extends BasesView implements HoverParent {
 			"showFilesWithoutMatches"
 		);
 		const filterTableRows = !!this.config.get("filterTableRows");
-		const propertySeparator = String(
-			(this.config.get("separator") as string) ?? "|"
-		);
 		const maxBlocksPerFile =
 			Number((this.config.get("maxBlocksPerFile") as string) ?? "0") || 0;
 		const selectedProperties = this.config.getOrder();
@@ -581,7 +578,6 @@ export class BlockView extends BasesView implements HoverParent {
 			showAllFiles,
 			showFilesWithoutMatches,
 			filterTableRows,
-			propertySeparator,
 			maxBlocksPerFile,
 			selectedProperties,
 			hasActiveFilters,
@@ -593,10 +589,7 @@ export class BlockView extends BasesView implements HoverParent {
 		entry: BasesEntry,
 		file: TFile,
 		blocks: ReturnType<typeof parseBlocks>,
-		{
-			selectedProperties,
-			propertySeparator,
-		}: ReturnType<typeof this.getRenderContext>,
+		{ selectedProperties }: ReturnType<typeof this.getRenderContext>,
 		fileTaskLines: Set<number>
 	) {
 		fileEl.empty();
@@ -624,7 +617,7 @@ export class BlockView extends BasesView implements HoverParent {
 				if (!firstProp) {
 					headerEl.createSpan({
 						cls: "block-view-separator",
-						text: propertySeparator,
+						text: "|",
 					});
 				}
 				firstProp = false;

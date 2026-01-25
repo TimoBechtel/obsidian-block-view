@@ -155,7 +155,7 @@ You can configure these settings via the view options panel in the Bases view.
 | **Include tags**    | Multi-select list of tags to filter by. Use `-` prefix to exclude (e.g., `#work`, `-#archived`). Supports nested tags. |
 | **Include if**      | `Any` (match at least one filter) or `All` (must match all active filters).   |
 | **Text pattern**    | Match lines starting with given text or regex (wrap in `//`). Supports invert.                          |
-| **Display Options** | Customize table dividers, hide empty files, or strip non-matching table rows. |
+| **Display Options** | Customize hiding empty files or stripping non-matching table rows. |
 
 ## Installation
 
