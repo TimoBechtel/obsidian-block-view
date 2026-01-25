@@ -109,8 +109,7 @@ export default class BlockViewPlugin extends Plugin {
 						},
 						{
 							type: "toggle",
-							displayName:
-								"Include other file types than markdown",
+							displayName: "Include non-markdown files",
 							key: "showAllFiles",
 							default: false,
 						},
@@ -124,7 +123,7 @@ export default class BlockViewPlugin extends Plugin {
 							type: "text",
 							displayName: "Max blocks per file",
 							key: "maxBlocksPerFile",
-							default: "0",
+							default: "",
 							placeholder: "0 = unlimited",
 						},
 					],

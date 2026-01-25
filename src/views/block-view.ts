@@ -489,7 +489,7 @@ export class BlockView extends BasesView implements HoverParent {
 		);
 		const filterTableRows = !!this.config.get("filterTableRows");
 		const maxBlocksPerFile =
-			Number((this.config.get("maxBlocksPerFile") as string) ?? "0") || 0;
+			Number((this.config.get("maxBlocksPerFile") as string) || "0") || 0;
 		const selectedProperties = this.config.getOrder();
 
 		function splitIncludesExcludes(items: string[]): {
