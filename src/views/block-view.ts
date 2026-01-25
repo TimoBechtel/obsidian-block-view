@@ -674,9 +674,13 @@ export class BlockView extends BasesView implements HoverParent {
 			// we first fill up the visible (+ previously rendered) blocks eagerly to avoid flashing content
 			if (!this.shouldLazyLoad) {
 				const blockRect = blockEl.getBoundingClientRect();
-				const viewportBottom = window.innerHeight;
+				const targetScrollTop = this.savedScrollPosition ?? 0;
+				const viewportBottom = targetScrollTop + window.innerHeight;
 
-				if (blockRect.top > viewportBottom) {
+				const blockTop = blockRect.top + window.scrollY; // absolute position from document top
+
+				// 200px buffer
+				if (blockTop > viewportBottom + 200) {
 					this.shouldLazyLoad = true;
 				}
 			}
