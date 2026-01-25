@@ -9,21 +9,44 @@
   <b>An Obsidian Bases view that turns your notes into a database of blocks.</b>
 </p>
 
+![Block View Demo](https://raw.githubusercontent.com/TimoBechtel/obsidian-block-view/main/docs/assets/obsidian-block-view.gif)
+
 ---
+
+
+## Table of Contents
+
+- [Installation](#installation)
+- [Examples](#examples)
+- [How it works](#how-it-works)
+- [Filters & View Options](#filters--view-options)
+- [Style Settings](#style-settings)
+- [Contributing](#contributing)
 
 ## What is Block View?
 
-Block View is an extension for the Bases core plugin that allows you to list and filter specific sections of your notes - _"blocks"_ - across your entire vault.
+Block View is an extension for the Bases core plugin that allows you to list and filter the content of your notes - _"blocks"_ - across your entire vault.
 
-![Block View Demo](https://raw.githubusercontent.com/TimoBechtel/obsidian-block-view/main/docs/assets/obsidian-block-view.gif)
+
 
 For example, you could use it to resurface specifically tagged bullet points in your daily notes every week. Or have a library of quotes from anywhere in your vault.
 
 And because it works as a Bases view, you can still use all the standard features like file filtering, sorting and grouping. It then divides each files's content into blocks, allowing you to filter and display specific sections from multiple notes in the same view.
 
-Still not sure what this is? Let's look at some examples.
+## Installation
+
+### Via [BRAT](https://obsidian.md/plugins?id=obsidian42-brat) (Beta)
+
+This plugin is currently in Beta and not yet available in the official Community Plugins list. You can install it using **BRAT**:
+
+1. Install **[BRAT](https://obsidian.md/plugins?id=obsidian42-brat)** from the Community Plugins store.
+2. Open the command palette and run `BRAT: Add a beta plugin for testing`.
+3. Enter the URL: `https://github.com/timobechtel/obsidian-block-view`
+4. Enable "Block View" in your settings.
 
 ## Examples
+
+Still not sure what this is? Let's look at some examples.
 
 ### 1. Daily Logs
 
@@ -131,16 +154,18 @@ views:
 
 </details>
 
-## Context Matching
+## How it works
 
-Block View uses the Markdown structure to determine what content belongs to a match.
+Block View filters blocks by checking if any line in a markdown section matches your filters.
 
+For example:
+
+- **Quotes:** If any line in a blockquote matches the filter, the view includes the content of that blockquote.
 - **Headers:** If a header matches the filter, the view includes the content of that section up to the next header of the same level.
 - **Lists:** If a list item matches, it includes all nested children items and continuation paragraphs.
-- **Tables:** You can choose to show the whole table if one cell matches or filter down to specific rows.
-- **Code:** It respects code block fences.
+- **Paragraphs:** If a paragraph matches, the view includes the content of that paragraph.
 
-## View Options
+## Filters & View Options
 
 You can configure these settings via the view options panel in the Bases view.
 
@@ -157,28 +182,15 @@ You can configure these settings via the view options panel in the Bases view.
 | **Text pattern**    | Match lines starting with given text or regex (wrap in `//`). Supports invert.                          |
 | **Display Options** | Customize hiding empty files or stripping non-matching table rows. |
 
-## Installation
+## Style Settings
 
-### Via [BRAT](https://obsidian.md/plugins?id=obsidian42-brat) (Beta)
-
-This plugin is currently in Beta and not yet available in the official Community Plugins list. You can install it using **BRAT**:
-
-1. Install **[BRAT](https://obsidian.md/plugins?id=obsidian42-brat)** from the Community Plugins store.
-2. Open the command palette and run `BRAT: Add a beta plugin for testing`.
-3. Enter the URL: `https://github.com/timobechtel/obsidian-block-view`
-4. Enable "Block View" in your settings.
+Block View supports configuring some of the styles via the [Style Settings](https://obsidian.md/plugins?id=obsidian-style-settings) plugin.
 
 ## Contributing
 
 ### Development
 
-This project uses [bun](https://bun.sh/) as a package manager & bundler.
-
-If you don't have bun installed, run:
-
-```bash
-curl -fsSL https://bun.sh/install | bash
-```
+This project uses [bun](https://bun.sh/) as a package manager.
 
 #### Install dependencies
 
