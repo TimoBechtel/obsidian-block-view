@@ -23,8 +23,8 @@ And this is a #log sentence.
 This should not be included.
 
 - Regular list item
-- List item with #log tag
-  - Nested child 1
+- List item with tag
+  - Nested child 1 #log
   - Nested child 2
     - Deeply nested
   - Back to level 2

@@ -44,15 +44,16 @@ describe("extractBlocks", () => {
 		const blocks = parseBlocks(exampleNote, exampleMetadata, matcher);
 
 		const listBlock = blocks.find((block) =>
-			block.content.includes("- List item with #log tag")
+			block.content.includes("- List item with tag")
 		);
 		expect(listBlock).toBeDefined();
-		expect(listBlock?.content).toContain("- List item with #log tag");
-		expect(listBlock?.content).toContain("  - Nested child 1");
+		expect(listBlock?.content).toContain("- List item with tag");
+		expect(listBlock?.content).toContain("  - Nested child 1 #log");
 		expect(listBlock?.content).toContain("  - Nested child 2");
 		expect(listBlock?.content).toContain("    - Deeply nested");
 		expect(listBlock?.content).toContain("  - Back to level 2");
 		expect(listBlock?.content).not.toContain("- Next item at same level");
+		expect(listBlock?.content).not.toContain("- Regular list item");
 
 		// next block
 		const blockIndex = listBlock ? blocks.indexOf(listBlock) : -1;

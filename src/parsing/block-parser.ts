@@ -36,54 +36,47 @@ class ListBlockParser extends SectionBlockParser {
 		const section = sections[startIndex];
 		if (!section) return null;
 
-		const listItemsInSection =
+		// section is the complete list, so we split it into top level items
+		const topLevelItems =
 			cache.listItems?.filter(
 				(item) =>
 					item.position.start.line >= section.position.start.line &&
-					item.position.end.line <= section.position.end.line
+					item.position.end.line <= section.position.end.line &&
+					item.parent < 0
 			) ?? [];
 
-		if (listItemsInSection.length === 0) return null;
+		if (topLevelItems.length === 0) return null;
 
 		const blocks: ParsedBlock[] = [];
 
-		let lastProcessedLine = -1;
+		for (let i = 0; i < topLevelItems.length; i++) {
+			const topLevelItem = topLevelItems[i];
+			if (!topLevelItem) continue;
 
-		for (let i = 0; i < listItemsInSection.length; i++) {
-			const item = listItemsInSection[i];
-			if (!item) continue;
+			const startLine = topLevelItem.position.start.line;
 
-			const startLine = item.position.start.line;
-
-			if (startLine <= lastProcessedLine) continue;
+			const nextItem = topLevelItems[i + 1];
+			const endLine = nextItem
+				? nextItem.position.start.line - 1
+				: section.position.end.line;
 
 			if (
-				!matcher.matches({
+				matcher.matches({
 					range: {
-						start: item.position.start.line,
-						end: item.position.end.line,
+						start: topLevelItem.position.start.line,
+						end: endLine,
 					},
 					sectionType: section.type,
 					lines,
 					cache,
 				})
 			) {
-				continue;
+				blocks.push({
+					content: lines.slice(startLine, endLine + 1).join("\n"),
+					startLine,
+					endLine,
+				});
 			}
-
-			const endLine = this.findBlockEndForItem(
-				i,
-				listItemsInSection,
-				section.position.end.line
-			);
-
-			lastProcessedLine = endLine;
-
-			blocks.push({
-				content: lines.slice(startLine, endLine + 1).join("\n"),
-				startLine,
-				endLine,
-			});
 		}
 
 		return blocks.length > 0
