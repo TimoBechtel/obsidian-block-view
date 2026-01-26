@@ -164,7 +164,7 @@ export class BlockView extends BasesView implements HoverParent {
 				hasContent = true;
 				const fileEl = groupEl.createDiv("block-view-file");
 				fileEl.dataset.filePath = file.path;
-				await this.renderFile(
+				this.renderFile(
 					fileEl,
 					entry,
 					file,
@@ -596,7 +596,7 @@ export class BlockView extends BasesView implements HoverParent {
 		};
 	}
 
-	private async renderFile(
+	private renderFile(
 		fileEl: HTMLElement,
 		entry: BasesEntry,
 		file: TFile,

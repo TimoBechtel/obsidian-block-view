@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+// this is ok for tests
 // eslint-disable-next-line import/no-nodejs-modules
 import { readFileSync } from "node:fs";
 import type { CachedMetadata } from "obsidian";
@@ -280,7 +281,7 @@ describe("extractBlocks", () => {
 		expect(afterBlock?.content).toContain("```");
 	});
 
-	test("does not include sections separated by empty line", async () => {
+	test("does not include sections separated by empty line", () => {
 		const matcher = new TagMatcher(["#adjacent"]);
 		const blocks = parseBlocks(exampleNote, exampleMetadata, matcher);
 

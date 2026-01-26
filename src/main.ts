@@ -2,7 +2,7 @@ import { Plugin } from "obsidian";
 import { BlockView, BlockViewType } from "./views/block-view";
 
 export default class BlockViewPlugin extends Plugin {
-	async onload() {
+	onload() {
 		this.registerBasesView(BlockViewType, {
 			name: "Blocks",
 			icon: "lucide-blocks",
