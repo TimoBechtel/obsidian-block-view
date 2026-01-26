@@ -1,7 +1,6 @@
 <h1 align="center">Obsidian Block View</h1>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/status-beta-yellow?style=flat-square" alt="Status" />
   <img src="https://img.shields.io/badge/obsidian-plugin-purple?style=flat-square" alt="Obsidian Plugin" />
 </p>
 
@@ -35,9 +34,9 @@ And because it works as a Bases view, you can still use all the standard feature
 
 ## Installation
 
-### Via [BRAT](https://obsidian.md/plugins?id=obsidian42-brat) (Beta)
+### Via [BRAT](https://obsidian.md/plugins?id=obsidian42-brat)
 
-This plugin is currently in Beta and not yet available in the official Community Plugins list. You can install it using **BRAT**:
+This plugin is not yet available in the official Community Plugins list. You can install it using **BRAT**:
 
 1. Install **[BRAT](https://obsidian.md/plugins?id=obsidian42-brat)** from the Community Plugins store.
 2. Open the command palette and run `BRAT: Add a beta plugin for testing`.
