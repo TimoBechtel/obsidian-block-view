@@ -1,44 +1,56 @@
-const interactiveSelector = [
-	"a",
+const interactiveTags = new Set([
+	"A",
+	"BUTTON",
+	"INPUT",
+	"TEXTAREA",
+	"SELECT",
+	"LABEL",
+	"VIDEO",
+	"AUDIO",
+	"DETAILS",
+	"SUMMARY",
+]);
+
+const interactiveAriaRoles = new Set([
 	"button",
-	"input",
-	"textarea",
-	"select",
-	"label",
-	"video",
-	"audio",
-	"details",
-	"summary",
+	"link",
+	"tab",
+	"menuitem",
+	"checkbox",
+	"radio",
+	"switch",
+]);
 
-	// other elements
-	"svg", // icons
-
-	"[onclick]",
-	"[onmousedown]",
-	"[onmouseup]",
-	'[contenteditable="true"]',
-	'[contenteditable=""]',
-	"[tabindex]",
-	'[role="button"]',
-	'[role="link"]',
-	'[role="tab"]',
-	'[role="menuitem"]',
-	'[role="checkbox"]',
-	'[role="radio"]',
-	'[role="switch"]',
-].join(", ");
-
-export function isInteractiveTarget(target: EventTarget | null): boolean {
+/**
+ * Checks if the target is an interactive element or a child of an interactive element within the boundary.
+ */
+export function isInteractiveTarget(
+	target: EventTarget | null,
+	boundary: HTMLElement
+): boolean {
 	if (!(target instanceof HTMLElement)) {
 		return false;
 	}
 
-	if (target.closest(interactiveSelector)) {
-		return true;
-	}
+	let current: HTMLElement | null = target;
+	while (current && current !== boundary) {
+		if (current.isContentEditable) {
+			return true;
+		}
 
-	if (target.isContentEditable) {
-		return true;
+		if (current.tabIndex > -1) {
+			return true;
+		}
+
+		if (interactiveTags.has(current.tagName)) {
+			return true;
+		}
+
+		if (interactiveAriaRoles.has(current.getAttribute("role") ?? "")) {
+			return true;
+		}
+
+		current = current.parentElement;
 	}
 
 	return false;

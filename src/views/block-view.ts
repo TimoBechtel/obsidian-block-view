@@ -278,7 +278,7 @@ export class BlockView extends BasesView implements HoverParent {
 		if (!(blockEl instanceof HTMLElement)) return;
 
 		// we make blocks clickable, but prevent clicks on links and other elements inside the block
-		if (target !== blockEl && isInteractiveTarget(target)) {
+		if (target !== blockEl && isInteractiveTarget(target, blockEl)) {
 			return;
 		}
 
