@@ -109,7 +109,7 @@ export default class BlockViewPlugin extends Plugin {
 						},
 						{
 							type: "toggle",
-							displayName: "Include non-markdown files",
+							displayName: "Include non-Markdown files",
 							key: "showAllFiles",
 							default: false,
 						},
