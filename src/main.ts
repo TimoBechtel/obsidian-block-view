@@ -1,4 +1,4 @@
-import { Plugin } from "obsidian";
+import { BasesViewConfig, Plugin } from "obsidian";
 import { BlockView, BlockViewType } from "./views/block-view";
 
 export default class BlockViewPlugin extends Plugin {
@@ -9,7 +9,7 @@ export default class BlockViewPlugin extends Plugin {
 			factory: (controller, containerEl) => {
 				return new BlockView(controller, containerEl);
 			},
-			options: () => [
+			options: (config: BasesViewConfig) => [
 				{
 					type: "toggle",
 					displayName: "Tasks",
@@ -26,7 +26,7 @@ export default class BlockViewPlugin extends Plugin {
 						incomplete: "Incomplete",
 						complete: "Complete",
 					} as Record<string, string>,
-					shouldHide: (config) => !config.get("filterTasks"),
+					shouldHide: () => !config.get("filterTasks"),
 				},
 				{
 					type: "toggle",
@@ -44,7 +44,7 @@ export default class BlockViewPlugin extends Plugin {
 						quotes: "Blockquotes",
 						callouts: "Callouts",
 					} as Record<string, string>,
-					shouldHide: (config) => !config.get("filterQuotes"),
+					shouldHide: () => !config.get("filterQuotes"),
 				},
 				{
 					type: "toggle",
@@ -58,7 +58,7 @@ export default class BlockViewPlugin extends Plugin {
 					key: "filterCodeBlocksLanguages",
 					default: ["-base"],
 					placeholder: "e.g. ts, js, -base",
-					shouldHide: (config) => !config.get("filterCodeBlocks"),
+					shouldHide: () => !config.get("filterCodeBlocks"),
 				},
 				{
 					type: "toggle",
@@ -85,7 +85,7 @@ export default class BlockViewPlugin extends Plugin {
 					displayName: "Invert text filter",
 					key: "invertTextPattern",
 					default: false,
-					shouldHide: (config) => !config.get("textPattern"),
+					shouldHide: () => !config.get("textPattern"),
 				},
 				{
 					type: "dropdown",
