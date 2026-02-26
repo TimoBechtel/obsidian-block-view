@@ -9,7 +9,7 @@ export default class BlockViewPlugin extends Plugin {
 			factory: (controller, containerEl) => {
 				return new BlockView(controller, containerEl);
 			},
-			options: (config: BasesViewConfig) => [
+			options: (config) => [
 				{
 					type: "toggle",
 					displayName: "Tasks",
