@@ -190,9 +190,8 @@ class HeadingBlockParser extends SectionBlockParser {
 	}
 
 	private getHeadingLevel(line: string): number {
-		const match = /^\s*(#{1,6})\s+/.exec(line);
-		if (!match) return 0;
-		return match[1].length;
+		const match = line.match(/^(#+)\s/);
+		return match && match[1] ? match[1].length : 0;
 	}
 }
 
