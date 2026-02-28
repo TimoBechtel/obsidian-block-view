@@ -10,6 +10,13 @@ const exampleNote = readFileSync("test/example-note.md", "utf-8");
 const exampleMetadata: CachedMetadata = JSON.parse(
 	readFileSync("test/example-note-metadata.json", "utf-8")
 ) as CachedMetadata;
+const headingBoundaryNote = readFileSync(
+	"test/heading-boundary-note.md",
+	"utf-8"
+);
+const headingBoundaryMetadata: CachedMetadata = JSON.parse(
+	readFileSync("test/heading-boundary-note-metadata.json", "utf-8")
+) as CachedMetadata;
 
 describe("extractBlocks", () => {
 	test("extracts paragraph blocks with tags", () => {
@@ -38,6 +45,42 @@ describe("extractBlocks", () => {
 		expect(headingBlock?.content).toContain("Content under the heading");
 		expect(headingBlock?.content).toContain("### Subheading");
 		expect(headingBlock?.content).toContain("This should be included too");
+	});
+
+	test("stops heading blocks at subheadings", () => {
+		const matcher = new TagMatcher(["#log"]);
+		const blocks = parseBlocks(
+			headingBoundaryNote,
+			headingBoundaryMetadata,
+			matcher
+		);
+
+		const headingBlock = blocks.find((block) =>
+			block.content.startsWith("# Log heading #log")
+		);
+		expect(headingBlock).toBeDefined();
+		expect(headingBlock?.content).toContain("Line under heading.");
+		expect(headingBlock?.content).not.toContain("## Subheading");
+		expect(headingBlock?.content).not.toContain("Subheading content.");
+	});
+
+	test("stops heading blocks at separator lines", () => {
+		const matcher = new TagMatcher(["#log"]);
+		const blocks = parseBlocks(
+			headingBoundaryNote,
+			headingBoundaryMetadata,
+			matcher
+		);
+
+		const headingBlock = blocks.find((block) =>
+			block.content.startsWith("# Another #log heading")
+		);
+		expect(headingBlock).toBeDefined();
+		expect(headingBlock?.content).toContain(
+			"Paragraph before separator."
+		);
+		expect(headingBlock?.content).not.toContain(" --- ");
+		expect(headingBlock?.content).not.toContain("Should not be included.");
 	});
 
 	test("extracts list item blocks with tags", () => {
