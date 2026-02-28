@@ -43,8 +43,9 @@ describe("extractBlocks", () => {
 		expect(headingBlock).toBeDefined();
 		expect(headingBlock?.content).toContain("## A heading with #log");
 		expect(headingBlock?.content).toContain("Content under the heading");
-		expect(headingBlock?.content).toContain("### Subheading");
-		expect(headingBlock?.content).toContain("This should be included too");
+		// stops at the next heading (any level)
+		expect(headingBlock?.content).not.toContain("### Subheading");
+		expect(headingBlock?.content).not.toContain("This should be included too");
 	});
 
 	test("stops heading blocks at subheadings", () => {
@@ -305,7 +306,8 @@ describe("extractBlocks", () => {
 		);
 
 		expect(blocksWithSentence.length).toBe(1);
-		expect(blocksWithSentence[0]).toBe(headingBlock);
+		// sentence is now in its own paragraph block (since headings stop at the next heading)
+		expect(blocksWithSentence[0]?.content).toStartWith("This should be included too");
 	});
 
 	test("includes block immediately after tagged line", () => {
