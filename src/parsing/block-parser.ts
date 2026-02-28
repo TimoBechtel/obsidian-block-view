@@ -138,6 +138,7 @@ class HeadingBlockParser extends SectionBlockParser {
 
 		const headingLine = lines[section.position.start.line];
 		if (!headingLine) return null;
+		const currentHeadingLevel = this.getHeadingLevel(headingLine);
 
 		if (
 			!matcher.matches({
@@ -166,7 +167,14 @@ class HeadingBlockParser extends SectionBlockParser {
 			}
 
 			if (nextSection.type === "heading") {
-				break;
+				const nextHeadingLevel = this.getHeadingLevel(nextLine);
+				if (
+					currentHeadingLevel === null ||
+					nextHeadingLevel === null ||
+					nextHeadingLevel <= currentHeadingLevel
+				) {
+					break;
+				}
 			}
 
 			endLine = nextSection.position.end.line;
@@ -189,6 +197,12 @@ class HeadingBlockParser extends SectionBlockParser {
 
 	private isSeparatorLine(line: string): boolean {
 		return /^\s*---\s*$/.test(line);
+	}
+
+	private getHeadingLevel(line: string): number | null {
+		const match = /^\s*(#{1,6})\s+/.exec(line);
+		if (!match) return null;
+		return match[1].length;
 	}
 }
 

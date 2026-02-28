@@ -43,12 +43,14 @@ describe("extractBlocks", () => {
 		expect(headingBlock).toBeDefined();
 		expect(headingBlock?.content).toContain("## A heading with #log");
 		expect(headingBlock?.content).toContain("Content under the heading");
-		// stops at the next heading (any level)
-		expect(headingBlock?.content).not.toContain("### Subheading");
-		expect(headingBlock?.content).not.toContain("This should be included too");
+		// includes subheadings
+		expect(headingBlock?.content).toContain("### Subheading");
+		expect(headingBlock?.content).toContain("This should be included too");
+		// stops at next heading of same or higher level
+		expect(headingBlock?.content).not.toContain("## Another heading");
 	});
 
-	test("stops heading blocks at subheadings", () => {
+	test("includes subheading content in heading blocks", () => {
 		const matcher = new TagMatcher(["#log"]);
 		const blocks = parseBlocks(
 			headingBoundaryNote,
@@ -61,8 +63,8 @@ describe("extractBlocks", () => {
 		);
 		expect(headingBlock).toBeDefined();
 		expect(headingBlock?.content).toContain("Line under heading.");
-		expect(headingBlock?.content).not.toContain("## Subheading");
-		expect(headingBlock?.content).not.toContain("Subheading content.");
+		expect(headingBlock?.content).toContain("## Subheading");
+		expect(headingBlock?.content).toContain("Subheading content.");
 	});
 
 	test("stops heading blocks at separator lines", () => {
@@ -306,8 +308,10 @@ describe("extractBlocks", () => {
 		);
 
 		expect(blocksWithSentence.length).toBe(1);
-		// sentence is now in its own paragraph block (since headings stop at the next heading)
-		expect(blocksWithSentence[0]?.content).toStartWith("This should be included too");
+		// sentence should remain inside the heading block (subheadings included)
+		expect(blocksWithSentence[0]?.content).toStartWith(
+			"## A heading with #log"
+		);
 	});
 
 	test("includes block immediately after tagged line", () => {
