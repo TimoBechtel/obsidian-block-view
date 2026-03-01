@@ -1,4 +1,8 @@
 import type { CachedMetadata, SectionCache } from "obsidian";
+import {
+	getOutgoingLinksInRange,
+	normalizeOutgoingLink,
+} from "./outgoing-links";
 
 export type MatchContext = {
 	range: {
@@ -8,6 +12,7 @@ export type MatchContext = {
 	sectionType: SectionCache["type"];
 	lines: string[];
 	cache: CachedMetadata;
+	outgoingLinks?: string[];
 };
 
 export interface Matcher {
@@ -33,6 +38,29 @@ export class TagMatcher implements Matcher {
 					this.targetTags.includes(t.tag.toLowerCase())
 			) ?? false
 		);
+	}
+}
+
+export class OutgoingLinkMatcher implements Matcher {
+	private targetLinks: Set<string>;
+
+	constructor(links: string[]) {
+		this.targetLinks = new Set(
+			links.map(normalizeOutgoingLink).filter((link) => link.length > 0)
+		);
+	}
+
+	matches({ cache, range, outgoingLinks }: MatchContext): boolean {
+		if (this.targetLinks.size === 0) return false;
+
+		const links = outgoingLinks ?? getOutgoingLinksInRange(cache, range);
+		for (const link of links) {
+			if (this.targetLinks.has(link)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }
 

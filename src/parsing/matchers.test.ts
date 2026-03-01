@@ -4,6 +4,7 @@ import {
 	AndMatcher,
 	CodeBlockMatcher,
 	NotMatcher,
+	OutgoingLinkMatcher,
 	TagMatcher,
 	TaskMatcher,
 	TextMatcher,
@@ -16,6 +17,8 @@ function createContext(
 		section?: SectionCache["type"];
 		tags?: Array<{ tag: string; line?: number }>;
 		tasks?: Array<{ status: " " | "x" | "X"; line?: number }>;
+		links?: Array<{ link: string; line?: number }>;
+		embeds?: Array<{ link: string; line?: number }>;
 	} = {}
 ): MatchContext {
 	const lines = content.split("\n");
@@ -43,6 +46,26 @@ function createContext(
 				end: { line, col: 0, offset: 0 },
 			},
 			parent: -1,
+		}));
+	}
+
+	if (options.links) {
+		cache.links = options.links.map(({ link, line = startLine }) => ({
+			link,
+			position: {
+				start: { line, col: 0, offset: 0 },
+				end: { line, col: 0, offset: 0 },
+			},
+		}));
+	}
+
+	if (options.embeds) {
+		cache.embeds = options.embeds.map(({ link, line = startLine }) => ({
+			link,
+			position: {
+				start: { line, col: 0, offset: 0 },
+				end: { line, col: 0, offset: 0 },
+			},
 		}));
 	}
 
@@ -143,6 +166,62 @@ Line 3 #log`,
 			}
 		);
 		expect(matcher.matches(section)).toBe(true);
+	});
+});
+
+describe("OutgoingLinkMatcher", () => {
+	test("matches when outgoing link in cache", () => {
+		const matcher = new OutgoingLinkMatcher(["Note"]);
+		expect(
+			matcher.matches(
+				createContext("This has [[Note]]", {
+					links: [{ link: "Note" }],
+				})
+			)
+		).toBe(true);
+	});
+
+	test("matches embeds as outgoing links", () => {
+		const matcher = new OutgoingLinkMatcher(["EmbedNote"]);
+		expect(
+			matcher.matches(
+				createContext("This has ![[EmbedNote]]", {
+					embeds: [{ link: "EmbedNote" }],
+				})
+			)
+		).toBe(true);
+	});
+
+	test("normalizes alias, heading, block ref, and extension", () => {
+		const matcher = new OutgoingLinkMatcher([
+			"note",
+			"note-2",
+			"note-3",
+			"note-4",
+		]);
+		expect(
+			matcher.matches(
+				createContext("Links", {
+					links: [
+						{ link: "Note|Alias" },
+						{ link: "Note-2#Heading" },
+						{ link: "Note-3#^block-id" },
+						{ link: "Note-4.md" },
+					],
+				})
+			)
+		).toBe(true);
+	});
+
+	test("case insensitive matching", () => {
+		const matcher = new OutgoingLinkMatcher(["NoTe"]);
+		expect(
+			matcher.matches(
+				createContext("This has [[NOTE]]", {
+					links: [{ link: "NOTE" }],
+				})
+			)
+		).toBe(true);
 	});
 });
 

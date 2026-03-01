@@ -4,7 +4,13 @@ import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import type { CachedMetadata } from "obsidian";
 import { parseBlocks } from "./block-parser";
-import { AndMatcher, NotMatcher, TagMatcher, TaskMatcher } from "./matchers";
+import {
+	AndMatcher,
+	NotMatcher,
+	OutgoingLinkMatcher,
+	TagMatcher,
+	TaskMatcher,
+} from "./matchers";
 
 const exampleNote = readFileSync("test/example-note.md", "utf-8");
 const exampleMetadata: CachedMetadata = JSON.parse(
@@ -309,5 +315,81 @@ describe("extractBlocks", () => {
 			block.content.includes("func separated()")
 		);
 		expect(separatedBlock).toBeUndefined();
+	});
+
+	test("extracts blocks with outgoing links", () => {
+		const content = [
+			"Paragraph with [[Note|Alias]] and ![[EmbedNote]].",
+			"Continuation line.",
+			"",
+			"## Heading",
+			"Heading content with [[Other#Section]].",
+			"",
+			"Another paragraph without link.",
+		].join("\n");
+
+		const metadata: CachedMetadata = {
+			sections: [
+				{
+					type: "paragraph",
+					position: {
+						start: { line: 0, col: 0, offset: 0 },
+						end: { line: 1, col: 0, offset: 0 },
+					},
+				},
+				{
+					type: "heading",
+					position: {
+						start: { line: 3, col: 0, offset: 0 },
+						end: { line: 4, col: 0, offset: 0 },
+					},
+				},
+				{
+					type: "paragraph",
+					position: {
+						start: { line: 6, col: 0, offset: 0 },
+						end: { line: 6, col: 0, offset: 0 },
+					},
+				},
+			],
+			links: [
+				{
+					link: "Note|Alias",
+					position: {
+						start: { line: 0, col: 15, offset: 0 },
+						end: { line: 0, col: 30, offset: 0 },
+					},
+				},
+				{
+					link: "Other#Section",
+					position: {
+						start: { line: 4, col: 22, offset: 0 },
+						end: { line: 4, col: 38, offset: 0 },
+					},
+				},
+			],
+			embeds: [
+				{
+					link: "EmbedNote",
+					position: {
+						start: { line: 0, col: 35, offset: 0 },
+						end: { line: 0, col: 48, offset: 0 },
+					},
+				},
+			],
+		};
+
+		const matcher = new OutgoingLinkMatcher(["note", "other"]);
+		const blocks = parseBlocks(content, metadata, matcher);
+
+		const paragraphBlock = blocks.find((block) =>
+			block.content.includes("Paragraph with [[Note|Alias]]")
+		);
+		expect(paragraphBlock).toBeDefined();
+
+		const headingBlock = blocks.find((block) =>
+			block.content.startsWith("## Heading")
+		);
+		expect(headingBlock).toBeDefined();
 	});
 });

@@ -14,6 +14,7 @@ import {
 	AndMatcher,
 	CodeBlockMatcher,
 	NotMatcher,
+	OutgoingLinkMatcher,
 	OrMatcher,
 	QuoteMatcher,
 	TableMatcher,
@@ -477,6 +478,9 @@ export class BlockView extends BasesView implements HoverParent {
 		) as string[]) ?? ["-base"];
 		const filterTables = !!this.config.get("filterTables");
 		const tagFilter = (this.config.get("tagFilter") as string[]) ?? [];
+		const outgoingLinkFilter = String(
+			(this.config.get("outgoingLinkFilter") as string) ?? ""
+		);
 		const textPattern = String(
 			(this.config.get("textPattern") as string) ?? ""
 		);
@@ -513,8 +517,17 @@ export class BlockView extends BasesView implements HoverParent {
 			return { includes, excludes };
 		}
 
+		function splitTextValues(value: string): string[] {
+			return value
+				.split(/[,\n]/)
+				.map((item) => item.trim())
+				.filter((item) => item.length > 0);
+		}
+
 		const { includes: includeTags, excludes: excludeTags } =
 			splitIncludesExcludes(tagFilter);
+		const { includes: includeOutgoingLinks, excludes: excludeOutgoingLinks } =
+			splitIncludesExcludes(splitTextValues(outgoingLinkFilter));
 		const { includes: includeLanguages, excludes: excludeLanguages } =
 			splitIncludesExcludes(filterCodeBlocksLanguages);
 
@@ -540,6 +553,28 @@ export class BlockView extends BasesView implements HoverParent {
 					return tagMatchers;
 				if (tagMatchers.length > 0)
 					return [new AndMatcher(tagMatchers)];
+				return [];
+			})(),
+			...(() => {
+				const linkMatchers: Matcher[] = [];
+				if (excludeOutgoingLinks.length > 0) {
+					linkMatchers.push(
+						new NotMatcher(
+							new OutgoingLinkMatcher(excludeOutgoingLinks)
+						)
+					);
+				}
+				if (includeOutgoingLinks.length > 0) {
+					linkMatchers.push(
+						new OutgoingLinkMatcher(includeOutgoingLinks)
+					);
+				}
+
+				if (linkMatchers.length === 0) return [];
+				if (linkMatchers.length === 1 && includeOutgoingLinks.length > 0)
+					return linkMatchers;
+				if (linkMatchers.length > 0)
+					return [new AndMatcher(linkMatchers)];
 				return [];
 			})(),
 			...(filterCodeBlocks

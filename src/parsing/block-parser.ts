@@ -1,5 +1,10 @@
 import type { CachedMetadata, ListItemCache, SectionCache } from "obsidian";
 import type { Matcher } from "./matchers";
+import {
+	attachOutgoingLinksToSections,
+	getOutgoingLinksInRange,
+	type SectionWithOutgoingLinks,
+} from "./outgoing-links";
 
 export type ParsedBlock = {
 	content: string;
@@ -30,7 +35,7 @@ class ListBlockParser extends SectionBlockParser {
 		blocks: ParsedBlock[];
 		lastSectionIndex: number;
 	} | null {
-		const sections = cache.sections;
+		const sections = cache.sections as SectionWithOutgoingLinks[] | undefined;
 		if (!sections) return null;
 
 		const section = sections[startIndex];
@@ -69,6 +74,10 @@ class ListBlockParser extends SectionBlockParser {
 					sectionType: section.type,
 					lines,
 					cache,
+					outgoingLinks: getOutgoingLinksInRange(cache, {
+						start: topLevelItem.position.start.line,
+						end: endLine,
+					}),
 				})
 			) {
 				blocks.push({
@@ -130,7 +139,7 @@ class HeadingBlockParser extends SectionBlockParser {
 		blocks: ParsedBlock[];
 		lastSectionIndex: number;
 	} | null {
-		const sections = cache.sections;
+		const sections = cache.sections as SectionWithOutgoingLinks[] | undefined;
 		if (!sections) return null;
 
 		const section = sections[startIndex];
@@ -149,6 +158,7 @@ class HeadingBlockParser extends SectionBlockParser {
 				sectionType: section.type,
 				lines,
 				cache,
+				outgoingLinks: section.outgoingLinks,
 			})
 		) {
 			return null;
@@ -204,7 +214,7 @@ class CodeBlockParser extends SectionBlockParser {
 		blocks: ParsedBlock[];
 		lastSectionIndex: number;
 	} | null {
-		const sections = cache.sections;
+		const sections = cache.sections as SectionWithOutgoingLinks[] | undefined;
 		if (!sections) return null;
 
 		const section = sections[startIndex];
@@ -219,6 +229,7 @@ class CodeBlockParser extends SectionBlockParser {
 				sectionType: section.type,
 				lines,
 				cache,
+				outgoingLinks: section.outgoingLinks,
 			})
 		) {
 			return null;
@@ -251,7 +262,7 @@ class TableBlockParser extends SectionBlockParser {
 		blocks: ParsedBlock[];
 		lastSectionIndex: number;
 	} | null {
-		const sections = cache.sections;
+		const sections = cache.sections as SectionWithOutgoingLinks[] | undefined;
 		if (!sections) return null;
 
 		const section = sections[startIndex];
@@ -278,6 +289,10 @@ class TableBlockParser extends SectionBlockParser {
 				sectionType: section.type,
 				lines,
 				cache,
+				outgoingLinks: getOutgoingLinksInRange(cache, {
+					start: section.position.start.line,
+					end: section.position.start.line,
+				}),
 			})
 		) {
 			return {
@@ -306,6 +321,10 @@ class TableBlockParser extends SectionBlockParser {
 					sectionType: section.type,
 					lines,
 					cache,
+					outgoingLinks: getOutgoingLinksInRange(cache, {
+						start: section.position.start.line + i,
+						end: section.position.start.line + i,
+					}),
 				})
 			) {
 				matchedTableRows.push(dataLine);
@@ -339,7 +358,7 @@ class DefaultSectionParser extends SectionBlockParser {
 		blocks: ParsedBlock[];
 		lastSectionIndex: number;
 	} | null {
-		const sections = cache.sections;
+		const sections = cache.sections as SectionWithOutgoingLinks[] | undefined;
 		if (!sections) return null;
 
 		const section = sections[startIndex];
@@ -354,6 +373,7 @@ class DefaultSectionParser extends SectionBlockParser {
 				sectionType: section.type,
 				lines,
 				cache,
+				outgoingLinks: section.outgoingLinks,
 			})
 		) {
 			return null;
@@ -400,6 +420,11 @@ export function parseBlocks(
 ): ParsedBlock[] {
 	if (!metadata?.sections) return [];
 
+	const cacheWithOutgoingLinks: CachedMetadata = {
+		...metadata,
+		sections: attachOutgoingLinksToSections(metadata),
+	};
+
 	// log metadata to update the test file:
 	// console.log('metadata', metadata);
 
@@ -414,8 +439,8 @@ export function parseBlocks(
 		new DefaultSectionParser(),
 	];
 
-	for (let i = 0; i < metadata.sections.length; i++) {
-		const section = metadata.sections[i];
+	for (let i = 0; i < cacheWithOutgoingLinks.sections.length; i++) {
+		const section = cacheWithOutgoingLinks.sections[i];
 		if (!section || section.type === "yaml") continue;
 
 		const parser: SectionBlockParser | undefined = sectionParsers.find(
@@ -427,7 +452,7 @@ export function parseBlocks(
 			startIndex: i,
 			lines,
 			matcher,
-			cache: metadata,
+			cache: cacheWithOutgoingLinks,
 		});
 		if (result) {
 			blocks.push(...result.blocks);

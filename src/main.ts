@@ -75,6 +75,13 @@ export default class BlockViewPlugin extends Plugin {
 				},
 				{
 					type: "text",
+					displayName: "Outgoing links",
+					key: "outgoingLinkFilter",
+					default: "",
+					placeholder: "e.g. Note, -Archive",
+				},
+				{
+					type: "text",
 					displayName: "Text pattern",
 					key: "textPattern",
 					default: "",
