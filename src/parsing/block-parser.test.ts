@@ -355,6 +355,7 @@ describe("extractBlocks", () => {
 			links: [
 				{
 					link: "Note|Alias",
+					original: "Note|Alias",
 					position: {
 						start: { line: 0, col: 15, offset: 0 },
 						end: { line: 0, col: 30, offset: 0 },
@@ -362,6 +363,7 @@ describe("extractBlocks", () => {
 				},
 				{
 					link: "Other#Section",
+					original: "Other#Section",
 					position: {
 						start: { line: 4, col: 22, offset: 0 },
 						end: { line: 4, col: 38, offset: 0 },
@@ -371,6 +373,7 @@ describe("extractBlocks", () => {
 			embeds: [
 				{
 					link: "EmbedNote",
+					original: "EmbedNote",
 					position: {
 						start: { line: 0, col: 35, offset: 0 },
 						end: { line: 0, col: 48, offset: 0 },

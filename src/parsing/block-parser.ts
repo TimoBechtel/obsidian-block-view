@@ -424,6 +424,7 @@ export function parseBlocks(
 		...metadata,
 		sections: attachOutgoingLinksToSections(metadata),
 	};
+	const sections = cacheWithOutgoingLinks.sections ?? [];
 
 	// log metadata to update the test file:
 	// console.log('metadata', metadata);
@@ -439,8 +440,8 @@ export function parseBlocks(
 		new DefaultSectionParser(),
 	];
 
-	for (let i = 0; i < cacheWithOutgoingLinks.sections.length; i++) {
-		const section = cacheWithOutgoingLinks.sections[i];
+	for (let i = 0; i < sections.length; i++) {
+		const section = sections[i];
 		if (!section || section.type === "yaml") continue;
 
 		const parser: SectionBlockParser | undefined = sectionParsers.find(

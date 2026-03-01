@@ -52,6 +52,7 @@ function createContext(
 	if (options.links) {
 		cache.links = options.links.map(({ link, line = startLine }) => ({
 			link,
+			original: link,
 			position: {
 				start: { line, col: 0, offset: 0 },
 				end: { line, col: 0, offset: 0 },
@@ -62,6 +63,7 @@ function createContext(
 	if (options.embeds) {
 		cache.embeds = options.embeds.map(({ link, line = startLine }) => ({
 			link,
+			original: link,
 			position: {
 				start: { line, col: 0, offset: 0 },
 				end: { line, col: 0, offset: 0 },
