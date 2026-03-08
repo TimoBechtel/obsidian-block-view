@@ -175,8 +175,7 @@ You can configure these settings via the view options panel in the Bases view.
 | **Languages** | Multi-select language filter for code blocks. Use `-` prefix to exclude (e.g. `ts`, `js`, `-base`). Default excludes `base`. |
 | **Tables** | Toggle to include Markdown tables. |
 | **Tags** | Multi-select list of tags to filter by. Use `-` prefix to exclude (e.g. `#work`, `-#archived`). Supports nested tags. |
-| **Outgoing links** | Filter by outgoing links. Enter a note name to include, or prefix with `-` to exclude (e.g. `Project`, `-Archive`). |
-| **Text pattern** | Match lines by plain text or regex (wrap in `/.../`). |
+| **Text pattern** | Match lines by plain text or regex (for regex, enter something like `/^## todo/i`). |
 | **Invert text filter** | Invert the text pattern match. Only shown when `Text pattern` is set. |
 | **Include if** | `Any filter matches` or `All filters match`. |
 | **Display options** | Show files without matches, include non-Markdown files, only include matching table rows, and cap max blocks per file. |
