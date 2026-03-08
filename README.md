@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <b>An Obsidian Bases view that turns your notes into a database of blocks.</b>
+  <b>A Bases view for Obsidian that turns your notes into a database of blocks.</b>
 </p>
 
 ![Block View Demo](https://raw.githubusercontent.com/TimoBechtel/obsidian-block-view/main/docs/assets/obsidian-block-view.gif)
@@ -24,13 +24,11 @@
 
 ## What is Block View?
 
-Block View is an extension for the Bases core plugin that allows you to list and filter the content of your notes - _"blocks"_ - across your entire vault.
+Block View is an extension for the Bases core plugin that lets you list and filter the content of your notes - _"blocks"_ - across your entire vault.
 
+For example, you could resurface specifically tagged bullet points from your daily notes every week. Or build a vault-wide library of quotes.
 
-
-For example, you could use it to resurface specifically tagged bullet points in your daily notes every week. Or have a library of quotes from anywhere in your vault.
-
-And because it works as a Bases view, you can still use all the standard features like file filtering, sorting and grouping. It then divides each files's content into blocks, allowing you to filter and display specific sections from multiple notes in the same view.
+Because it works as a Bases view, you can still use the standard features like file filtering, sorting, and grouping. Block View then divides each file's content into blocks, so you can filter and display specific sections from multiple notes in the same view.
 
 ## Installation
 
@@ -64,11 +62,10 @@ views:
     filters:
       and:
         - file.folder == "Daily Notes"
+    # Sorting is handled by Bases. Use the Sort menu in the UI to set direction.
     order:
+      - file.mtime
       - file.name
-    sort:
-      - property: file.mtime
-        direction: DESC
     tagFilter:
       - "#log"
       - "#work"
@@ -91,8 +88,9 @@ Collect all incomplete tasks from your project folders in a single list. You can
 views:
   - type: block-view
     name: "Active Tasks"
-    group:
-      - property: file.folder
+    groupBy:
+      property: file.folder
+      direction: ASC
     filterTasks: true
     filterTasksType: incomplete
 ```
@@ -120,11 +118,10 @@ views:
     groupBy:
       property: file.folder
       direction: ASC
+    # Sorting is handled by Bases. Use the Sort menu in the UI to set direction.
     order:
+      - file.mtime
       - file.name
-    sort:
-      - property: file.mtime
-        direction: DESC
 ```
 ````
 
@@ -146,7 +143,7 @@ views:
     name: "Highlights"
     filterQuotes: true
     tagFilter:
-      - insight
+      - "#insight"
     matchLogic: all
 ```
 ````
@@ -168,18 +165,21 @@ For example:
 
 You can configure these settings via the view options panel in the Bases view.
 
-| Option              | Description                                                                   |
-| :------------------ | :---------------------------------------------------------------------------- |
-| **Tasks**           | Toggle to show task items (`- [ ]`).                                          |
-| **Show**            | If tasks are enabled, choose `Any`, `Incomplete`, or `Complete`.              |
-| **Quotes**          | Toggle to show Blockquotes (`> text`) and/or Callouts.                        |
-| **Quote type**      | If quotes are enabled, choose `Any`, `Blockquotes`, or `Callouts`.            |
-| **Code Blocks**     | Toggle to show code blocks.                                                   |
-| **Languages**       | Multi-select filter for code block languages. Use `-` prefix to exclude (e.g., `ts`, `js`, `-base`). Default excludes `base`. |
-| **Include tags**    | Multi-select list of tags to filter by. Use `-` prefix to exclude (e.g., `#work`, `-#archived`). Supports nested tags. |
-| **Include if**      | `Any` (match at least one filter) or `All` (must match all active filters).   |
-| **Text pattern**    | Match lines starting with given text or regex (wrap in `//`). Supports invert.                          |
-| **Display Options** | Customize hiding empty files or stripping non-matching table rows. |
+| Option | Description |
+| :-- | :-- |
+| **Tasks** | Toggle to include task items (`- [ ]`). |
+| **Show** | If tasks are enabled, choose `Any`, `Incomplete`, or `Complete`. |
+| **Quotes** | Toggle to include quotes (`>` blockquotes) and/or callouts. |
+| **Quote type** | If quotes are enabled, choose `Any`, `Blockquotes`, or `Callouts`. |
+| **Code blocks** | Toggle to include fenced code blocks. |
+| **Languages** | Multi-select language filter for code blocks. Use `-` prefix to exclude (e.g. `ts`, `js`, `-base`). Default excludes `base`. |
+| **Tables** | Toggle to include Markdown tables. |
+| **Tags** | Multi-select list of tags to filter by. Use `-` prefix to exclude (e.g. `#work`, `-#archived`). Supports nested tags. |
+| **Outgoing links** | Filter by outgoing links. Enter a note name to include, or prefix with `-` to exclude (e.g. `Project`, `-Archive`). |
+| **Text pattern** | Match lines by plain text or regex (wrap in `/.../`). |
+| **Invert text filter** | Invert the text pattern match. Only shown when `Text pattern` is set. |
+| **Include if** | `Any filter matches` or `All filters match`. |
+| **Display options** | Show files without matches, include non-Markdown files, only include matching table rows, and cap max blocks per file. |
 
 ## Style Settings
 
