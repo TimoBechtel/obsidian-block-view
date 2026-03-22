@@ -5,13 +5,12 @@
 </p>
 
 <p align="center">
-  <b>An Obsidian Bases view that turns your notes into a database of blocks.</b>
+  <b>A Bases view for Obsidian that turns your notes into a database of blocks.</b>
 </p>
 
 ![Block View Demo](https://raw.githubusercontent.com/TimoBechtel/obsidian-block-view/main/docs/assets/obsidian-block-view.gif)
 
 ---
-
 
 ## Table of Contents
 
@@ -24,13 +23,11 @@
 
 ## What is Block View?
 
-Block View is an extension for the Bases core plugin that allows you to list and filter the content of your notes - _"blocks"_ - across your entire vault.
+Block View is an extension for the Bases core plugin that lets you list and filter the content of your notes - _"blocks"_ - across your entire vault.
 
+For example, you could resurface specifically tagged bullet points from your daily notes every week. Or build a vault-wide library of quotes.
 
-
-For example, you could use it to resurface specifically tagged bullet points in your daily notes every week. Or have a library of quotes from anywhere in your vault.
-
-And because it works as a Bases view, you can still use all the standard features like file filtering, sorting and grouping. It then divides each files's content into blocks, allowing you to filter and display specific sections from multiple notes in the same view.
+Because it works as a Bases view, you can still use the standard features like file filtering, sorting, and grouping. Block View then divides each file's content into blocks, so you can filter and display specific sections from multiple notes in the same view.
 
 ## Installation
 
@@ -60,12 +57,10 @@ Review your work history by listing every paragraph tagged with `#log` or `#work
 ```base
 views:
   - type: block-view
-    name: Blocks
+    name: Daily Logs
     filters:
       and:
         - file.folder == "Daily Notes"
-    order:
-      - file.name
     sort:
       - property: file.mtime
         direction: DESC
@@ -90,9 +85,10 @@ Collect all incomplete tasks from your project folders in a single list. You can
 ```base
 views:
   - type: block-view
-    name: "Active Tasks"
-    group:
-      - property: file.folder
+    name: Active Tasks
+    groupBy:
+      property: file.folder
+      direction: ASC
     filterTasks: true
     filterTasksType: incomplete
 ```
@@ -113,15 +109,13 @@ Build a searchable library of your code snippets. This example collects every `p
 ```base
 views:
   - type: block-view
-    name: "Python Library"
+    name: Python Snippets
     filterCodeBlocks: true
     filterCodeBlocksLanguages:
       - python
     groupBy:
       property: file.folder
       direction: ASC
-    order:
-      - file.name
     sort:
       - property: file.mtime
         direction: DESC
@@ -170,16 +164,18 @@ You can configure these settings via the view options panel in the Bases view.
 
 | Option              | Description                                                                   |
 | :------------------ | :---------------------------------------------------------------------------- |
-| **Tasks**           | Toggle to show task items (`- [ ]`).                                          |
+| **Tasks**           | Toggle to include task items (`- [ ]`).                                       |
 | **Show**            | If tasks are enabled, choose `Any`, `Incomplete`, or `Complete`.              |
-| **Quotes**          | Toggle to show Blockquotes (`> text`) and/or Callouts.                        |
+| **Quotes**          | Toggle to include quotes (`> quote`) and/or callouts.                   |
 | **Quote type**      | If quotes are enabled, choose `Any`, `Blockquotes`, or `Callouts`.            |
-| **Code Blocks**     | Toggle to show code blocks.                                                   |
-| **Languages**       | Multi-select filter for code block languages. Use `-` prefix to exclude (e.g., `ts`, `js`, `-base`). Default excludes `base`. |
-| **Include tags**    | Multi-select list of tags to filter by. Use `-` prefix to exclude (e.g., `#work`, `-#archived`). Supports nested tags. |
-| **Include if**      | `Any` (match at least one filter) or `All` (must match all active filters).   |
-| **Text pattern**    | Match lines starting with given text or regex (wrap in `//`). Supports invert.                          |
-| **Display Options** | Customize hiding empty files or stripping non-matching table rows. |
+| **Code Blocks**     | Toggle to include fenced code blocks.                                         |
+| **Languages**       | Multi-select language filter for code blocks. Use `-` prefix to exclude (e.g., `ts`, `js`, `-base`). Default excludes `base`. |
+| **Tables**          | Toggle to include Markdown tables.                                            |
+| **Tags**            | Multi-select list of tags to filter by. Use `-` prefix to exclude (e.g., `#work`, `-#archived`). Supports nested tags. |
+| **Text pattern**    | Match lines by plain text or regex (for regex, enter something like `/^## todo/i`). |
+| **Invert text filter** | Invert the text pattern match.     |
+| **Include if**      | `Any filter matches` or `All filters match`.                                  |
+| **Display Options** | Show files without matches, include non-Markdown files, only include matching table rows, and cap max blocks per file. |
 
 ## Style Settings
 
