@@ -12,7 +12,6 @@
 
 ---
 
-
 ## Table of Contents
 
 - [Installation](#installation)
@@ -58,14 +57,13 @@ Review your work history by listing every paragraph tagged with `#log` or `#work
 ```base
 views:
   - type: block-view
-    name: Blocks
+    name: Daily Logs
     filters:
       and:
         - file.folder == "Daily Notes"
-    # Sorting is handled by Bases. Use the Sort menu in the UI to set direction.
-    order:
-      - file.mtime
-      - file.name
+    sort:
+      - property: file.mtime
+        direction: DESC
     tagFilter:
       - "#log"
       - "#work"
@@ -87,7 +85,7 @@ Collect all incomplete tasks from your project folders in a single list. You can
 ```base
 views:
   - type: block-view
-    name: "Active Tasks"
+    name: Active Tasks
     groupBy:
       property: file.folder
       direction: ASC
@@ -111,17 +109,16 @@ Build a searchable library of your code snippets. This example collects every `p
 ```base
 views:
   - type: block-view
-    name: "Python Library"
+    name: Python Snippets
     filterCodeBlocks: true
     filterCodeBlocksLanguages:
       - python
     groupBy:
       property: file.folder
       direction: ASC
-    # Sorting is handled by Bases. Use the Sort menu in the UI to set direction.
-    order:
-      - file.mtime
-      - file.name
+    sort:
+      - property: file.mtime
+        direction: DESC
 ```
 ````
 
@@ -143,7 +140,7 @@ views:
     name: "Highlights"
     filterQuotes: true
     tagFilter:
-      - "#insight"
+      - insight
     matchLogic: all
 ```
 ````
@@ -169,14 +166,14 @@ You can configure these settings via the view options panel in the Bases view.
 | :------------------ | :---------------------------------------------------------------------------- |
 | **Tasks**           | Toggle to include task items (`- [ ]`).                                       |
 | **Show**            | If tasks are enabled, choose `Any`, `Incomplete`, or `Complete`.              |
-| **Quotes**          | Toggle to include quotes (`>` blockquotes) and/or callouts.                   |
+| **Quotes**          | Toggle to include quotes (`> quote`) and/or callouts.                   |
 | **Quote type**      | If quotes are enabled, choose `Any`, `Blockquotes`, or `Callouts`.            |
 | **Code Blocks**     | Toggle to include fenced code blocks.                                         |
 | **Languages**       | Multi-select language filter for code blocks. Use `-` prefix to exclude (e.g., `ts`, `js`, `-base`). Default excludes `base`. |
 | **Tables**          | Toggle to include Markdown tables.                                            |
 | **Tags**            | Multi-select list of tags to filter by. Use `-` prefix to exclude (e.g., `#work`, `-#archived`). Supports nested tags. |
 | **Text pattern**    | Match lines by plain text or regex (for regex, enter something like `/^## todo/i`). |
-| **Invert text filter** | Invert the text pattern match. Only shown when `Text pattern` is set.     |
+| **Invert text filter** | Invert the text pattern match.     |
 | **Include if**      | `Any filter matches` or `All filters match`.                                  |
 | **Display Options** | Show files without matches, include non-Markdown files, only include matching table rows, and cap max blocks per file. |
 
