@@ -150,7 +150,45 @@ export class BlockView extends BasesView implements HoverParent {
 					}
 				});
 
+				if (matcher.canSkipByMetadata({ cache: metadata })) {
+					if (!showFilesWithoutMatches) {
+						continue;
+					}
+
+					hasContent = true;
+					const fileEl = groupEl.createDiv("block-view-file");
+					fileEl.dataset.filePath = file.path;
+					this.renderFile(
+						fileEl,
+						entry,
+						file,
+						[],
+						context,
+						fileTaskLines
+					);
+					continue;
+				}
+
 				const content = await app.vault.cachedRead(file);
+				if (matcher.canSkipByContent({ content, cache: metadata })) {
+					if (!showFilesWithoutMatches) {
+						continue;
+					}
+
+					hasContent = true;
+					const fileEl = groupEl.createDiv("block-view-file");
+					fileEl.dataset.filePath = file.path;
+					this.renderFile(
+						fileEl,
+						entry,
+						file,
+						[],
+						context,
+						fileTaskLines
+					);
+					continue;
+				}
+
 				const blocks = parseBlocks(content, metadata, matcher, {
 					filterTableRows,
 					limit: maxBlocksPerFile > 0 ? maxBlocksPerFile : undefined,

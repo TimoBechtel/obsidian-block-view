@@ -10,8 +10,25 @@ export type MatchContext = {
 	cache: CachedMetadata;
 };
 
+export type MetadataMatchContext = {
+	cache: CachedMetadata;
+};
+
+export type ContentMatchContext = {
+	content: string;
+	cache: CachedMetadata;
+};
+
 export interface Matcher {
 	matches(context: MatchContext): boolean;
+	/**
+	 * Cheap check whether to skip whole file based on metadata.
+	 */
+	canSkipByMetadata(context: MetadataMatchContext): boolean;
+	/**
+	 * Cheap check whether to skip whole file based on content.
+	 */
+	canSkipByContent(context: ContentMatchContext): boolean;
 }
 
 export class TagMatcher implements Matcher {
@@ -34,15 +51,27 @@ export class TagMatcher implements Matcher {
 			) ?? false
 		);
 	}
+
+	canSkipByMetadata({ cache }: MetadataMatchContext): boolean {
+		return !(
+			cache.tags?.some((tag) =>
+				this.targetTags.includes(tag.tag.toLowerCase())
+			) ?? false
+		);
+	}
+
+	canSkipByContent(): boolean {
+		return false;
+	}
 }
 
 export class TextMatcher implements Matcher {
 	private regex: RegExp | null;
-	private pattern: string | null;
+	private normalizedPattern: string | null;
 
 	constructor(pattern: string) {
 		this.regex = null;
-		this.pattern = null;
+		this.normalizedPattern = null;
 
 		if (!pattern) {
 			return;
@@ -63,11 +92,11 @@ export class TextMatcher implements Matcher {
 			}
 		}
 
-		this.pattern = pattern;
+		this.normalizedPattern = pattern.toLowerCase();
 	}
 
 	matches({ range, lines }: MatchContext): boolean {
-		if (!this.pattern && !this.regex) {
+		if (!this.normalizedPattern && !this.regex) {
 			return false;
 		}
 
@@ -78,15 +107,27 @@ export class TextMatcher implements Matcher {
 				return true;
 			}
 			if (
-				this.pattern &&
+				this.normalizedPattern &&
 				// case insensitive matching
-				line.trim().toLowerCase().startsWith(this.pattern.toLowerCase())
+				line.trim().toLowerCase().startsWith(this.normalizedPattern)
 			) {
 				return true;
 			}
 		}
 
 		return false;
+	}
+
+	canSkipByMetadata(): boolean {
+		return false;
+	}
+
+	canSkipByContent({ content }: ContentMatchContext): boolean {
+		if (!this.normalizedPattern) {
+			return false;
+		}
+
+		return !content.toLowerCase().includes(this.normalizedPattern);
 	}
 }
 
@@ -106,6 +147,22 @@ export class TaskMatcher implements Matcher {
 			) ?? false
 		);
 	}
+
+	canSkipByMetadata({ cache }: MetadataMatchContext): boolean {
+		return !(
+			cache.listItems?.some(
+				(item) =>
+					item.task !== undefined &&
+					(this.type === "any" ||
+						(this.type === "incomplete" && item.task === " ") ||
+						(this.type === "complete" && item.task !== " "))
+			) ?? false
+		);
+	}
+
+	canSkipByContent(): boolean {
+		return false;
+	}
 }
 
 export class QuoteMatcher implements Matcher {
@@ -119,6 +176,27 @@ export class QuoteMatcher implements Matcher {
 			return sectionType === "blockquote";
 		}
 		return sectionType === "callout";
+	}
+
+	canSkipByMetadata({ cache }: MetadataMatchContext): boolean {
+		return !(
+			cache.sections?.some((section) => {
+				if (this.type === "any") {
+					return (
+						section.type === "blockquote" ||
+						section.type === "callout"
+					);
+				}
+				if (this.type === "quotes") {
+					return section.type === "blockquote";
+				}
+				return section.type === "callout";
+			}) ?? false
+		);
+	}
+
+	canSkipByContent(): boolean {
+		return false;
 	}
 }
 
@@ -155,11 +233,31 @@ export class CodeBlockMatcher implements Matcher {
 
 		return this.languages.has(afterFence.toLowerCase());
 	}
+
+	canSkipByMetadata({ cache }: MetadataMatchContext): boolean {
+		return !(
+			cache.sections?.some((section) => section.type === "code") ?? false
+		);
+	}
+
+	canSkipByContent(): boolean {
+		return false;
+	}
 }
 
 export class TableMatcher implements Matcher {
 	matches({ sectionType }: MatchContext): boolean {
 		return sectionType === "table";
+	}
+
+	canSkipByMetadata({ cache }: MetadataMatchContext): boolean {
+		return !(
+			cache.sections?.some((section) => section.type === "table") ?? false
+		);
+	}
+
+	canSkipByContent(): boolean {
+		return false;
 	}
 }
 
@@ -169,6 +267,14 @@ export class NotMatcher implements Matcher {
 	matches(context: MatchContext): boolean {
 		return !this.matcher.matches(context);
 	}
+
+	canSkipByMetadata(): boolean {
+		return false;
+	}
+
+	canSkipByContent(): boolean {
+		return false;
+	}
 }
 
 export class AndMatcher implements Matcher {
@@ -177,6 +283,18 @@ export class AndMatcher implements Matcher {
 	matches(context: MatchContext): boolean {
 		return this.matchers.every((matcher) => matcher.matches(context));
 	}
+
+	canSkipByMetadata(context: MetadataMatchContext): boolean {
+		return this.matchers.some((matcher) =>
+			matcher.canSkipByMetadata(context)
+		);
+	}
+
+	canSkipByContent(context: ContentMatchContext): boolean {
+		return this.matchers.some((matcher) =>
+			matcher.canSkipByContent(context)
+		);
+	}
 }
 
 export class OrMatcher implements Matcher {
@@ -184,5 +302,17 @@ export class OrMatcher implements Matcher {
 
 	matches(context: MatchContext): boolean {
 		return this.matchers.some((matcher) => matcher.matches(context));
+	}
+
+	canSkipByMetadata(context: MetadataMatchContext): boolean {
+		return this.matchers.every((matcher) =>
+			matcher.canSkipByMetadata(context)
+		);
+	}
+
+	canSkipByContent(context: ContentMatchContext): boolean {
+		return this.matchers.every((matcher) =>
+			matcher.canSkipByContent(context)
+		);
 	}
 }
