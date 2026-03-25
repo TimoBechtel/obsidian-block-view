@@ -74,7 +74,6 @@ export class BlockView extends BasesView implements HoverParent {
 		this.intersectionObserver = new IntersectionObserver(
 			(entries) => this.handleIntersection(entries),
 			{
-				root: parentEl,
 				rootMargin: "200px",
 				threshold: 0.01,
 			}
