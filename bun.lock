@@ -5,7 +5,7 @@
     "": {
       "name": "obsidian-sample-plugin",
       "dependencies": {
-        "obsidian": "1.12.3",
+        "obsidian": "^1.12.3",
       },
       "devDependencies": {
         "@eslint/js": "9.30.1",
