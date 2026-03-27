@@ -36,8 +36,25 @@ describe("extractBlocks", () => {
 		expect(headingBlock).toBeDefined();
 		expect(headingBlock?.content).toContain("## A heading with #log");
 		expect(headingBlock?.content).toContain("Content under the heading");
+		// includes subheadings
 		expect(headingBlock?.content).toContain("### Subheading");
 		expect(headingBlock?.content).toContain("This should be included too");
+		// stops at next heading of same or higher level
+		expect(headingBlock?.content).not.toContain("## Another heading");
+	});
+
+	test("stops heading blocks at separator lines", () => {
+		const matcher = new TagMatcher(["#log"]);
+		const blocks = parseBlocks(exampleNote, exampleMetadata, matcher);
+
+		const headingBlock = blocks.find((block) =>
+			block.content.startsWith("## Separator heading #log")
+		);
+		expect(headingBlock).toBeDefined();
+		expect(headingBlock?.content).toContain("Line before separator.");
+		expect(headingBlock?.content).not.toContain(
+			"This should not be included."
+		);
 	});
 
 	test("extracts list item blocks with tags", () => {
@@ -262,7 +279,10 @@ describe("extractBlocks", () => {
 		);
 
 		expect(blocksWithSentence.length).toBe(1);
-		expect(blocksWithSentence[0]).toBe(headingBlock);
+		// sentence should remain inside the heading block (subheadings included)
+		expect(blocksWithSentence[0]?.content).toStartWith(
+			"## A heading with #log"
+		);
 	});
 
 	test("includes block immediately after tagged line", () => {
