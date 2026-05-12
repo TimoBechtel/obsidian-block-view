@@ -1,7 +1,12 @@
 <h1 align="center">Obsidian Block View</h1>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/obsidian-plugin-purple?style=flat-square" alt="Obsidian Plugin" />
+  <a href="https://community.obsidian.md/plugins/block-view">
+    <img
+      src="https://img.shields.io/badge/Obsidian-Community%20Plugin-7C3AED?style=flat-square&logo=obsidian"
+      alt="Install from Obsidian Community Plugins"
+    />
+  </a>
 </p>
 
 <p align="center">
@@ -31,14 +36,7 @@ Because it works as a Bases view, you can still use the standard features like f
 
 ## Installation
 
-### Via [BRAT](https://obsidian.md/plugins?id=obsidian42-brat)
-
-This plugin is not yet available in the official Community Plugins list. You can install it using **BRAT**:
-
-1. Install **[BRAT](https://obsidian.md/plugins?id=obsidian42-brat)** from the Community Plugins store.
-2. Open the command palette and run `BRAT: Add a beta plugin for testing`.
-3. Enter the URL: `https://github.com/timobechtel/obsidian-block-view`
-4. Enable "Block View" in your settings.
+Install from the official community plugins store: https://community.obsidian.md/plugins/block-view
 
 ## Examples
 
