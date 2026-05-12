@@ -273,7 +273,7 @@ export class BlockView extends BasesView implements HoverParent {
 
 			lines[line] = current.replace(
 				/\[([ xX])\]/,
-				(match, status: string) => {
+				(_match, status: string) => {
 					return status.toLowerCase() === "x" ? "[ ]" : "[x]";
 				}
 			);

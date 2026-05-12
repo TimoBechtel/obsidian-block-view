@@ -5,7 +5,7 @@ export function debounceLeading<T extends unknown[]>(
 	fn: (...args: T) => void,
 	delay: number
 ): (...args: T) => void {
-	let timeoutId: ReturnType<typeof setTimeout> | null = null;
+	let timeoutId: number | null = null;
 	let lastCallTime = 0;
 
 	return function (...args: T) {
@@ -13,14 +13,14 @@ export function debounceLeading<T extends unknown[]>(
 		const timeSinceLastCall = now - lastCallTime;
 
 		if (timeoutId) {
-			clearTimeout(timeoutId);
+			window.activeWindow.clearTimeout(timeoutId);
 		}
 
 		if (timeSinceLastCall >= delay) {
 			lastCallTime = now;
 			fn(...args);
 		} else {
-			timeoutId = setTimeout(() => {
+			timeoutId = window.activeWindow.setTimeout(() => {
 				lastCallTime = Date.now();
 				timeoutId = null;
 				fn(...args);
