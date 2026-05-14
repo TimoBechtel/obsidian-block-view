@@ -111,13 +111,13 @@ body {
 }
 
 /* remove margins from first and last child */
-.block-view-block > :first-child {
-	margin-top: 0 !important;
-	margin-block-start: 0 !important;
+.block-view-block.markdown-rendered > :first-child {
+	margin-top: 0;
+	margin-block-start: 0;
 }
-.block-view-block > :last-child {
-	margin-bottom: 0 !important;
-	margin-block-end: 0 !important;
+.block-view-block.markdown-rendered > :last-child {
+	margin-bottom: 0;
+	margin-block-end: 0;
 }
 
 .block-view-empty-placeholder {
