@@ -747,7 +747,7 @@ export class BlockView extends BasesView implements HoverParent {
 
 	private restoreScrollPosition() {
 		if (this.savedScrollPosition !== undefined) {
-			requestAnimationFrame(() => {
+			this.containerEl.win.requestAnimationFrame(() => {
 				if (this.containerEl.parentElement) {
 					this.containerEl.parentElement.scrollTop =
 						this.savedScrollPosition!;
