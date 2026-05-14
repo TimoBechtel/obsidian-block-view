@@ -41,7 +41,7 @@ export class BlockView extends BasesView implements HoverParent {
 
 	private debouncedRender = debounceLeading(() => {
 		void this.render();
-	}, 200);
+	}, 200, () => this.containerEl.win);
 
 	private pendingRenders = new Map<HTMLElement, BlockRenderInfo>();
 
@@ -273,7 +273,7 @@ export class BlockView extends BasesView implements HoverParent {
 
 			lines[line] = current.replace(
 				/\[([ xX])\]/,
-				(match, status: string) => {
+				(_match, status: string) => {
 					return status.toLowerCase() === "x" ? "[ ]" : "[x]";
 				}
 			);
@@ -691,8 +691,8 @@ export class BlockView extends BasesView implements HoverParent {
 
 		for (const block of blocks) {
 			const blockEl = blocksEl.createDiv(
-				// markdown-preview-view markdown-rendered - are the internal obsidian classes so that it looks like normal markdown
-				"block-view-block markdown-preview-view markdown-rendered block-view-block-placeholder"
+				// markdown-rendered - is the internal obsidian class so that it looks like normal markdown
+				"block-view-block markdown-rendered block-view-block-placeholder"
 			);
 			blockEl.dataset.filePath = file.path;
 			blockEl.dataset.startLine = String(block.startLine);
