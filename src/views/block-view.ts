@@ -41,7 +41,7 @@ export class BlockView extends BasesView implements HoverParent {
 
 	private debouncedRender = debounceLeading(() => {
 		void this.render();
-	}, 200);
+	}, 200, () => this.containerEl.win);
 
 	private pendingRenders = new Map<HTMLElement, BlockRenderInfo>();
 
