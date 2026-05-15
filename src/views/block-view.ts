@@ -24,6 +24,7 @@ import {
 } from "../parsing/matchers";
 import { debounceLeading } from "../utils/debounce";
 import { hasTextSelection, isInteractiveTarget } from "../utils/is-interactive";
+import { renderBlockViewEmptyState } from "./block-view-empty-state";
 
 export const BlockViewType = "block-view" as const;
 
@@ -99,7 +100,10 @@ export class BlockView extends BasesView implements HoverParent {
 		this.intersectionObserver.disconnect();
 
 		if (!context.hasActiveFilters) {
-			this.renderEmptyPlaceholder();
+			renderBlockViewEmptyState({
+				parent: this.containerEl,
+				onApplyPreset: (config) => this.applyPreset(config),
+			});
 			this.updateStatusBar(0, 0);
 			this.containerEl.setCssStyles({ minHeight: "" });
 			return;
@@ -481,18 +485,11 @@ export class BlockView extends BasesView implements HoverParent {
 		this.statusBarEl.textContent = `${blockCount} block${blockCount !== 1 ? "s" : ""} across ${fileCount} file${fileCount !== 1 ? "s" : ""}`;
 	}
 
-	private renderEmptyPlaceholder() {
-		const placeholderEl = this.containerEl.createDiv(
-			"block-view-empty-placeholder"
-		);
-		placeholderEl.createEl("p", {
-			text: "No filters enabled",
-			cls: "block-view-empty-placeholder-title",
-		});
-		placeholderEl.createEl("p", {
-			text: "Enable at least one filter in the view options",
-			cls: "block-view-empty-placeholder-subtitle",
-		});
+	private applyPreset(config: Record<string, unknown>) {
+		for (const [k, v] of Object.entries(config)) {
+			this.config.set(k, v);
+		}
+		void this.render();
 	}
 
 	private getRenderContext() {
