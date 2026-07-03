@@ -225,9 +225,7 @@ export class BlockView extends BasesView implements HoverParent {
 				const groupHeaderEl = groupEl.createDiv(
 					"block-view-group-header"
 				);
-				group.key.renderTo(groupHeaderEl, {
-					hoverPopover: this.hoverPopover,
-				});
+				group.key.renderTo(groupHeaderEl, this.app.renderContext);
 				groupEl.insertBefore(groupHeaderEl, groupEl.firstChild);
 			}
 		}
@@ -672,9 +670,7 @@ export class BlockView extends BasesView implements HoverParent {
 					"block-view-property-value"
 				);
 				try {
-					value.renderTo(valueEl, {
-						hoverPopover: this.hoverPopover,
-					});
+					value.renderTo(valueEl, this.app.renderContext);
 				} catch {
 					valueEl.textContent = value.toString();
 				}
