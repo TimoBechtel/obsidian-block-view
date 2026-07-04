@@ -1,13 +1,11 @@
 import { describe, expect, test } from "bun:test";
-// this is ok for tests
-// eslint-disable-next-line import/no-nodejs-modules
 import { readFileSync } from "node:fs";
 import type { CachedMetadata } from "obsidian";
 import { parseBlocks } from "./block-parser";
 import { AndMatcher, NotMatcher, TagMatcher, TaskMatcher } from "./matchers";
 
 const exampleNote = readFileSync("test/example-note.md", "utf-8");
-const exampleMetadata: CachedMetadata = JSON.parse(
+const exampleMetadata = JSON.parse(
 	readFileSync("test/example-note-metadata.json", "utf-8")
 ) as CachedMetadata;
 

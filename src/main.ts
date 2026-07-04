@@ -1,4 +1,4 @@
-import { Plugin } from "obsidian";
+import { Plugin, type BasesAllOptions } from "obsidian";
 import { BlockView, BlockViewType } from "./views/block-view";
 
 export default class BlockViewPlugin extends Plugin {
@@ -9,7 +9,7 @@ export default class BlockViewPlugin extends Plugin {
 			factory: (controller, containerEl) => {
 				return new BlockView(controller, containerEl);
 			},
-			options: (config) => [
+			options: (config): BasesAllOptions[] => [
 				{
 					type: "toggle",
 					displayName: "Tasks",
@@ -25,7 +25,7 @@ export default class BlockViewPlugin extends Plugin {
 						any: "Any",
 						incomplete: "Incomplete",
 						complete: "Complete",
-					} as Record<string, string>,
+					} satisfies Record<string, string>,
 					shouldHide: () => !config.get("filterTasks"),
 				},
 				{
@@ -43,7 +43,7 @@ export default class BlockViewPlugin extends Plugin {
 						any: "Any",
 						quotes: "Blockquotes",
 						callouts: "Callouts",
-					} as Record<string, string>,
+					} satisfies Record<string, string>,
 					shouldHide: () => !config.get("filterQuotes"),
 				},
 				{
@@ -57,7 +57,6 @@ export default class BlockViewPlugin extends Plugin {
 					displayName: "Languages",
 					key: "filterCodeBlocksLanguages",
 					default: ["-base"],
-					placeholder: "e.g. ts, js, -base",
 					shouldHide: () => !config.get("filterCodeBlocks"),
 				},
 				{
@@ -71,7 +70,6 @@ export default class BlockViewPlugin extends Plugin {
 					displayName: "Tags",
 					key: "tagFilter",
 					default: [],
-					placeholder: "e.g. #work, -#archived",
 				},
 				{
 					type: "text",
@@ -95,7 +93,7 @@ export default class BlockViewPlugin extends Plugin {
 					options: {
 						any: "Any filter matches",
 						all: "All filters match",
-					} as Record<string, string>,
+					} satisfies Record<string, string>,
 				},
 				{
 					type: "group",

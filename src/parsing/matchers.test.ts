@@ -23,7 +23,7 @@ function createContext(
 	const startLine = 0;
 	const sectionEndLine = startLine + lines.length - 1;
 
-	const cache: Partial<CachedMetadata> = {};
+	const cache: CachedMetadata = {};
 
 	if (options.tags) {
 		cache.tags = options.tags.map(({ tag, line = startLine }) => ({
@@ -53,7 +53,7 @@ function createContext(
 		},
 		sectionType: options.section ?? "paragraph",
 		lines,
-		cache: cache as CachedMetadata,
+		cache,
 	};
 }
 
