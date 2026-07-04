@@ -1,23 +1,6 @@
 import { Plugin, type BasesAllOptions } from "obsidian";
 import { BlockView, BlockViewType } from "./views/block-view";
 
-const taskFilterTypeOptions: Record<string, string> = {
-	any: "Any",
-	incomplete: "Incomplete",
-	complete: "Complete",
-};
-
-const quoteFilterTypeOptions: Record<string, string> = {
-	any: "Any",
-	quotes: "Blockquotes",
-	callouts: "Callouts",
-};
-
-const matchLogicOptions: Record<string, string> = {
-	any: "Any filter matches",
-	all: "All filters match",
-};
-
 export default class BlockViewPlugin extends Plugin {
 	onload() {
 		this.registerBasesView(BlockViewType, {
@@ -38,7 +21,11 @@ export default class BlockViewPlugin extends Plugin {
 					displayName: "Show",
 					key: "filterTasksType",
 					default: "any",
-					options: taskFilterTypeOptions,
+					options: {
+						any: "Any",
+						incomplete: "Incomplete",
+						complete: "Complete",
+					} satisfies Record<string, string>,
 					shouldHide: () => !config.get("filterTasks"),
 				},
 				{
@@ -52,7 +39,11 @@ export default class BlockViewPlugin extends Plugin {
 					displayName: "Quote type",
 					key: "filterQuotesType",
 					default: "quotes",
-					options: quoteFilterTypeOptions,
+					options: {
+						any: "Any",
+						quotes: "Blockquotes",
+						callouts: "Callouts",
+					} satisfies Record<string, string>,
 					shouldHide: () => !config.get("filterQuotes"),
 				},
 				{
@@ -99,7 +90,10 @@ export default class BlockViewPlugin extends Plugin {
 					displayName: "Include if",
 					key: "matchLogic",
 					default: "any",
-					options: matchLogicOptions,
+					options: {
+						any: "Any filter matches",
+						all: "All filters match",
+					} satisfies Record<string, string>,
 				},
 				{
 					type: "group",
