@@ -1,5 +1,22 @@
-import { Plugin } from "obsidian";
+import { Plugin, type BasesAllOptions } from "obsidian";
 import { BlockView, BlockViewType } from "./views/block-view";
+
+const taskFilterTypeOptions: Record<string, string> = {
+	any: "Any",
+	incomplete: "Incomplete",
+	complete: "Complete",
+};
+
+const quoteFilterTypeOptions: Record<string, string> = {
+	any: "Any",
+	quotes: "Blockquotes",
+	callouts: "Callouts",
+};
+
+const matchLogicOptions: Record<string, string> = {
+	any: "Any filter matches",
+	all: "All filters match",
+};
 
 export default class BlockViewPlugin extends Plugin {
 	onload() {
@@ -9,7 +26,7 @@ export default class BlockViewPlugin extends Plugin {
 			factory: (controller, containerEl) => {
 				return new BlockView(controller, containerEl);
 			},
-			options: (config) => [
+			options: (config): BasesAllOptions[] => [
 				{
 					type: "toggle",
 					displayName: "Tasks",
@@ -21,11 +38,7 @@ export default class BlockViewPlugin extends Plugin {
 					displayName: "Show",
 					key: "filterTasksType",
 					default: "any",
-					options: {
-						any: "Any",
-						incomplete: "Incomplete",
-						complete: "Complete",
-					} as Record<string, string>,
+					options: taskFilterTypeOptions,
 					shouldHide: () => !config.get("filterTasks"),
 				},
 				{
@@ -39,11 +52,7 @@ export default class BlockViewPlugin extends Plugin {
 					displayName: "Quote type",
 					key: "filterQuotesType",
 					default: "quotes",
-					options: {
-						any: "Any",
-						quotes: "Blockquotes",
-						callouts: "Callouts",
-					} as Record<string, string>,
+					options: quoteFilterTypeOptions,
 					shouldHide: () => !config.get("filterQuotes"),
 				},
 				{
@@ -57,7 +66,6 @@ export default class BlockViewPlugin extends Plugin {
 					displayName: "Languages",
 					key: "filterCodeBlocksLanguages",
 					default: ["-base"],
-					placeholder: "e.g. ts, js, -base",
 					shouldHide: () => !config.get("filterCodeBlocks"),
 				},
 				{
@@ -71,7 +79,6 @@ export default class BlockViewPlugin extends Plugin {
 					displayName: "Tags",
 					key: "tagFilter",
 					default: [],
-					placeholder: "e.g. #work, -#archived",
 				},
 				{
 					type: "text",
@@ -92,10 +99,7 @@ export default class BlockViewPlugin extends Plugin {
 					displayName: "Include if",
 					key: "matchLogic",
 					default: "any",
-					options: {
-						any: "Any filter matches",
-						all: "All filters match",
-					} as Record<string, string>,
+					options: matchLogicOptions,
 				},
 				{
 					type: "group",
