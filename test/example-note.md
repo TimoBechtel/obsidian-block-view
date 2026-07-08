@@ -124,3 +124,8 @@ func separated() {}
 | Regular  | Table    |
 |----------|----------|
 | No tag   | Here     |
+
+## Separator heading #log
+Line before separator.
+---
+This should not be included.
