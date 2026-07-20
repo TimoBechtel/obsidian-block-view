@@ -24,10 +24,7 @@ import {
 } from "../parsing/matchers";
 import { debounceLeading } from "../utils/debounce";
 import { hasTextSelection, isInteractiveTarget } from "../utils/is-interactive";
-import {
-	renderBlockViewEmptyState,
-	type BlockViewPresetConfig,
-} from "./block-view-empty-state";
+import { renderBlockViewEmptyState } from "./block-view-empty-state";
 
 export const BlockViewType = "block-view" as const;
 
@@ -467,15 +464,15 @@ export class BlockView extends BasesView implements HoverParent {
 		placeholder.classList.remove("block-view-block-placeholder");
 		placeholder.setCssStyles({ minHeight: "" });
 
-		const markdown: string = this.decorateTaskLines(
+		const decoratedContent = this.decorateTaskLines(
 			block.content,
 			block.startLine,
 			fileTaskLines
-		).trimStart();
+		);
 
 		await MarkdownRenderer.render(
 			this.app,
-			markdown,
+			decoratedContent.trimStart(),
 			placeholder,
 			file.path,
 			this
@@ -486,9 +483,9 @@ export class BlockView extends BasesView implements HoverParent {
 		this.statusBarEl.textContent = `${blockCount} block${blockCount !== 1 ? "s" : ""} across ${fileCount} file${fileCount !== 1 ? "s" : ""}`;
 	}
 
-	private applyPreset(config: BlockViewPresetConfig) {
-		for (const [key, value] of Object.entries(config)) {
-			this.config.set(key, value);
+	private applyPreset(config: Record<string, unknown>) {
+		for (const [k, v] of Object.entries(config)) {
+			this.config.set(k, v);
 		}
 		void this.render();
 	}
