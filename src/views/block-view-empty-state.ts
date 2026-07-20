@@ -1,6 +1,17 @@
 import { setIcon } from "obsidian";
 
-const PRESETS = [
+export type BlockViewPresetConfigValue = boolean | string | string[];
+
+export type BlockViewPresetConfig = Readonly<
+	Record<string, BlockViewPresetConfigValue>
+>;
+
+const PRESETS: readonly {
+	label: string;
+	hint: string;
+	icon: string;
+	config: BlockViewPresetConfig;
+}[] = [
 	{
 		label: "Open tasks",
 		hint: "List all open tasks in your vault and check them off right there",
@@ -19,12 +30,7 @@ const PRESETS = [
 		icon: "lucide-quote",
 		config: { filterQuotes: true, filterQuotesType: "any" },
 	},
-] satisfies {
-	label: string;
-	hint: string;
-	icon: string;
-	config: Record<string, unknown>;
-}[];
+];
 
 const TIPS = [
 	"Prefix a tag with a minus sign to exclude it.",
@@ -37,7 +43,7 @@ export function renderBlockViewEmptyState({
 	onApplyPreset,
 }: {
 	parent: HTMLElement;
-	onApplyPreset: (config: Record<string, unknown>) => void;
+	onApplyPreset: (config: BlockViewPresetConfig) => void;
 }) {
 	const root = parent.createDiv({
 		cls: "bv-empty",
