@@ -25,6 +25,7 @@ import {
 import { debounceLeading } from "../utils/debounce";
 import { hasTextSelection, isInteractiveTarget } from "../utils/is-interactive";
 import { renderBlockViewEmptyState } from "./block-view-empty-state";
+import { tryOpenObsidianImagePreview } from "./obsidian-image-preview";
 
 export const BlockViewType = "block-view" as const;
 
@@ -293,6 +294,15 @@ export class BlockView extends BasesView implements HoverParent {
 		const target = evt.target;
 		if (!(target instanceof HTMLElement)) return;
 
+		if (
+			tryOpenObsidianImagePreview({
+				containerEl: this.containerEl,
+				event: evt,
+				target,
+			})
+		) {
+			return;
+		}
 		const internalLink = target.closest("a.internal-link");
 		if (internalLink instanceof HTMLAnchorElement) {
 			this.handleInternalLinkClick(evt, internalLink);
