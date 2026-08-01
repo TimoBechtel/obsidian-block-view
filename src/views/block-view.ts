@@ -13,6 +13,7 @@ import { parseBlocks, type ParsedBlock } from "../parsing/block-parser";
 import {
 	AndMatcher,
 	CodeBlockMatcher,
+	ImageMatcher,
 	NotMatcher,
 	OrMatcher,
 	QuoteMatcher,
@@ -518,6 +519,7 @@ export class BlockView extends BasesView implements HoverParent {
 			"filterCodeBlocksLanguages"
 		) as string[]) ?? ["-base"];
 		const filterTables = !!this.config.get("filterTables");
+		const filterImages = !!this.config.get("filterImages");
 		const tagFilter = (this.config.get("tagFilter") as string[]) ?? [];
 		const textPattern = String(
 			(this.config.get("textPattern") as string) ?? ""
@@ -566,6 +568,7 @@ export class BlockView extends BasesView implements HoverParent {
 			...(filterTasks ? [new TaskMatcher(filterTasksType)] : []),
 			...(filterQuotes ? [new QuoteMatcher(filterQuotesType)] : []),
 			...(filterTables ? [new TableMatcher()] : []),
+			...(filterImages ? [new ImageMatcher()] : []),
 			...(() => {
 				const tagMatchers: Matcher[] = [];
 				if (excludeTags.length > 0) {

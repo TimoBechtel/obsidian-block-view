@@ -66,6 +66,12 @@ export default class BlockViewPlugin extends Plugin {
 					default: false,
 				},
 				{
+					type: "toggle",
+					displayName: "Images",
+					key: "filterImages",
+					default: false,
+				},
+				{
 					type: "multitext",
 					displayName: "Tags",
 					key: "tagFilter",

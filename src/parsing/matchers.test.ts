@@ -3,6 +3,7 @@ import type { CachedMetadata, SectionCache } from "obsidian";
 import {
 	AndMatcher,
 	CodeBlockMatcher,
+	ImageMatcher,
 	NotMatcher,
 	TagMatcher,
 	TaskMatcher,
@@ -16,6 +17,7 @@ function createContext(
 		section?: SectionCache["type"];
 		tags?: Array<{ tag: string; line?: number }>;
 		tasks?: Array<{ status: " " | "x" | "X"; line?: number }>;
+		embeds?: Array<{ link: string; original: string; line?: number }>;
 	} = {}
 ): MatchContext {
 	const lines = content.split("\n");
@@ -44,6 +46,23 @@ function createContext(
 			},
 			parent: -1,
 		}));
+	}
+
+	if (options.embeds) {
+		cache.embeds = options.embeds.map(
+			({ link, original, line = startLine }) => ({
+				link,
+				original,
+				position: {
+					start: { line, col: 0, offset: 0 },
+					end: {
+						line,
+						col: original.length,
+						offset: original.length,
+					},
+				},
+			})
+		);
 	}
 
 	return {
@@ -283,6 +302,77 @@ describe("CodeBlockMatcher", () => {
 		expect(
 			matcher.matches(createContext("```python", { section: "code" }))
 		).toBe(false);
+	});
+});
+
+describe("ImageMatcher", () => {
+	test("matches local image embeds", () => {
+		const matcher = new ImageMatcher();
+
+		expect(
+			matcher.matches(
+				createContext("![[photo.jpg#outline]]", {
+					embeds: [
+						{
+							link: "photo.jpg#outline",
+							original: "![[photo.jpg#outline]]",
+						},
+					],
+				})
+			)
+		).toBe(true);
+		expect(
+			matcher.matches(
+				createContext("![[document.pdf]]", {
+					embeds: [
+						{
+							link: "document.pdf",
+							original: "![[document.pdf]]",
+						},
+					],
+				})
+			)
+		).toBe(false);
+	});
+
+	test("matches remote Markdown images without file extensions", () => {
+		const matcher = new ImageMatcher();
+		const image = "![Weather map](https://example.com/render?id=42)";
+
+		expect(
+			matcher.matches(
+				createContext(image, {
+					embeds: [
+						{
+							link: "https://example.com/render?id=42",
+							original: image,
+						},
+					],
+				})
+			)
+		).toBe(true);
+	});
+
+	test("combines with tags in the same block", () => {
+		const matcher = new AndMatcher([
+			new ImageMatcher(),
+			new TagMatcher(["#greenhouse"]),
+		]);
+		const image = "![Greenhouse](https://example.com/render)";
+
+		expect(
+			matcher.matches(
+				createContext(`${image} #greenhouse`, {
+					embeds: [
+						{
+							link: "https://example.com/render",
+							original: image,
+						},
+					],
+					tags: [{ tag: "#greenhouse" }],
+				})
+			)
+		).toBe(true);
 	});
 });
 

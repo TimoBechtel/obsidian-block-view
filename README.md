@@ -160,20 +160,21 @@ For example:
 
 You can configure these settings via the view options panel in the Bases view.
 
-| Option              | Description                                                                   |
-| :------------------ | :---------------------------------------------------------------------------- |
-| **Tasks**           | Toggle to include task items (`- [ ]`).                                       |
-| **Show**            | If tasks are enabled, choose `Any`, `Incomplete`, or `Complete`.              |
-| **Quotes**          | Toggle to include quotes (`> quote`) and/or callouts.                   |
-| **Quote type**      | If quotes are enabled, choose `Any`, `Blockquotes`, or `Callouts`.            |
-| **Code Blocks**     | Toggle to include fenced code blocks.                                         |
-| **Languages**       | Multi-select language filter for code blocks. Use `-` prefix to exclude (e.g., `ts`, `js`, `-base`). Default excludes `base`. |
-| **Tables**          | Toggle to include Markdown tables.                                            |
-| **Tags**            | Multi-select list of tags to filter by. Use `-` prefix to exclude (e.g., `#work`, `-#archived`). Supports nested tags. |
-| **Text pattern**    | Match any line in a block by plain text or regex. Plain text matches the start of a line. For regex, use something like `/^## ToDos/i`. |
-| **Invert text filter** | Include blocks whose lines do not match the text pattern. |
-| **Include if**      | `Any filter matches` or `All filters match`.                                  |
-| **Display Options** | Show files without matches, include non-Markdown files, only include matching table rows, and cap max blocks per file. |
+| Option                 | Description                                                                                                                             |
+| :--------------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
+| **Tasks**              | Toggle to include task items (`- [ ]`).                                                                                                 |
+| **Show**               | If tasks are enabled, choose `Any`, `Incomplete`, or `Complete`.                                                                        |
+| **Quotes**             | Toggle to include quotes (`> quote`) and/or callouts.                                                                                   |
+| **Quote type**         | If quotes are enabled, choose `Any`, `Blockquotes`, or `Callouts`.                                                                      |
+| **Code Blocks**        | Toggle to include fenced code blocks.                                                                                                   |
+| **Languages**          | Multi-select language filter for code blocks. Use `-` prefix to exclude (e.g., `ts`, `js`, `-base`). Default excludes `base`.           |
+| **Tables**             | Toggle to include Markdown tables.                                                                                                      |
+| **Images**             | Toggle to include images.                                                                                                               |
+| **Tags**               | Multi-select list of tags to filter by. Use `-` prefix to exclude (e.g., `#work`, `-#archived`). Supports nested tags.                  |
+| **Text pattern**       | Match any line in a block by plain text or regex. Plain text matches the start of a line. For regex, use something like `/^## ToDos/i`. |
+| **Invert text filter** | Include blocks whose lines do not match the text pattern.                                                                               |
+| **Include if**         | `Any filter matches` or `All filters match`.                                                                                            |
+| **Display Options**    | Show files without matches, include non-Markdown files, only include matching table rows, and cap max blocks per file.                  |
 
 > Text pattern example: `meeting` matches `Meeting notes`, but not `Notes from the meeting`. Use regex like `/meeting/i` to match anywhere in a line.
 

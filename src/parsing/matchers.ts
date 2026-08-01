@@ -261,6 +261,51 @@ export class TableMatcher implements Matcher {
 	}
 }
 
+const IMAGE_EXTENSIONS = new Set([
+	"avif",
+	"bmp",
+	"gif",
+	"jpeg",
+	"jpg",
+	"png",
+	"svg",
+	"webp",
+]);
+
+export class ImageMatcher implements Matcher {
+	matches({ cache, range }: MatchContext): boolean {
+		return (
+			cache.embeds?.some((embed) => {
+				const line = embed.position.start.line;
+				if (line < range.start || line > range.end) return false;
+
+				const original = embed.original.trimStart();
+				if (original.startsWith("![") && !original.startsWith("![[")) {
+					return true;
+				}
+
+				const hashIndex = embed.link.indexOf("#");
+				const linkPath =
+					hashIndex === -1
+						? embed.link
+						: embed.link.substring(0, hashIndex);
+				const extension = linkPath.split(".").pop()?.toLowerCase();
+				return (
+					extension !== undefined && IMAGE_EXTENSIONS.has(extension)
+				);
+			}) ?? false
+		);
+	}
+
+	canSkipByMetadata({ cache }: MetadataMatchContext): boolean {
+		return !cache.embeds?.length;
+	}
+
+	canSkipByContent(): boolean {
+		return false;
+	}
+}
+
 export class NotMatcher implements Matcher {
 	constructor(private matcher: Matcher) {}
 
