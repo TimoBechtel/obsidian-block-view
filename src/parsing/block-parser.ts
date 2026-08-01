@@ -1,4 +1,4 @@
-import type { CachedMetadata, ListItemCache, SectionCache } from "obsidian";
+import type { CachedMetadata, SectionCache } from "obsidian";
 import type { Matcher } from "./matchers";
 
 export type ParsedBlock = {
@@ -82,42 +82,6 @@ class ListBlockParser extends SectionBlockParser {
 		return blocks.length > 0
 			? { blocks, lastSectionIndex: startIndex }
 			: null;
-	}
-
-	/**
-	 * Finds the end line of a block starting from a list item.
-	 * Includes all children and continuation paragraphs.
-	 *
-	 * Note: Assumes the items are sorted by start line.
-	 */
-	private findBlockEndForItem(
-		startItemIndex: number,
-		items: ListItemCache[],
-		maxLine: number
-	): number {
-		const parentItem = items[startItemIndex];
-		if (!parentItem) return -1;
-
-		let endLine = parentItem.position.end.line;
-
-		const validParents = new Set<number>();
-		validParents.add(parentItem.position.start.line);
-
-		for (let i = startItemIndex + 1; i < items.length; i++) {
-			const current = items[i];
-			if (!current) break;
-
-			if (validParents.has(current.parent)) {
-				if (current.position.end.line > endLine) {
-					endLine = current.position.end.line;
-				}
-				validParents.add(current.position.start.line);
-			} else {
-				break;
-			}
-		}
-
-		return Math.min(endLine, maxLine);
 	}
 }
 
