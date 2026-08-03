@@ -1,5 +1,6 @@
 import {
 	BasesView,
+	getLinkpath,
 	Keymap,
 	MarkdownRenderer,
 	parsePropertyId,
@@ -14,6 +15,7 @@ import {
 	AndMatcher,
 	CodeBlockMatcher,
 	ImageMatcher,
+	InternalLinkMatcher,
 	NotMatcher,
 	OrMatcher,
 	QuoteMatcher,
@@ -21,6 +23,7 @@ import {
 	TagMatcher,
 	TaskMatcher,
 	TextMatcher,
+	type InternalLinkTarget,
 	type Matcher,
 } from "../parsing/matchers";
 import { debounceLeading } from "../utils/debounce";
@@ -156,7 +159,7 @@ export class BlockView extends BasesView implements HoverParent {
 					}
 				});
 
-				if (matcher.canSkipByMetadata({ cache: metadata })) {
+				if (matcher.canSkipByMetadata({ cache: metadata, file })) {
 					if (!showFilesWithoutMatches) {
 						continue;
 					}
@@ -195,10 +198,16 @@ export class BlockView extends BasesView implements HoverParent {
 					continue;
 				}
 
-				const blocks = parseBlocks(content, metadata, matcher, {
-					filterTableRows,
-					limit: maxBlocksPerFile > 0 ? maxBlocksPerFile : undefined,
-				});
+				const blocks = parseBlocks(
+					content,
+					{ metadata, file },
+					matcher,
+					{
+						filterTableRows,
+						limit:
+							maxBlocksPerFile > 0 ? maxBlocksPerFile : undefined,
+					}
+				);
 
 				if (blocks.length === 0 && !showFilesWithoutMatches) {
 					continue;
@@ -520,6 +529,34 @@ export class BlockView extends BasesView implements HoverParent {
 		) as string[]) ?? ["-base"];
 		const filterTables = !!this.config.get("filterTables");
 		const filterImages = !!this.config.get("filterImages");
+		const filterLinks = !!this.config.get("filterLinks");
+		const linkFilterType =
+			(this.config.get("linkFilterType") as
+				"internal" | "currentFile" | "file") ?? "internal";
+		let internalLinkTarget: InternalLinkTarget = { type: "none" };
+		if (filterLinks) {
+			if (linkFilterType === "internal") {
+				internalLinkTarget = { type: "any" };
+			} else if (linkFilterType === "file") {
+				const configuredPath = String(
+					(this.config.get("linkFilterFile") as string) ?? ""
+				);
+				// resolve file names / relative paths too
+				const path = this.app.metadataCache.getFirstLinkpathDest(
+					getLinkpath(configuredPath),
+					// using vault root to keep stable paths
+					""
+				)?.path;
+				internalLinkTarget = path
+					? { type: "file", path }
+					: { type: "none" };
+			} else {
+				const path = this.app.workspace.getActiveFile()?.path;
+				internalLinkTarget = path
+					? { type: "file", path }
+					: { type: "none" };
+			}
+		}
 		const tagFilter = (this.config.get("tagFilter") as string[]) ?? [];
 		const textPattern = String(
 			(this.config.get("textPattern") as string) ?? ""
@@ -569,6 +606,18 @@ export class BlockView extends BasesView implements HoverParent {
 			...(filterQuotes ? [new QuoteMatcher(filterQuotesType)] : []),
 			...(filterTables ? [new TableMatcher()] : []),
 			...(filterImages ? [new ImageMatcher()] : []),
+			...(filterLinks
+				? [
+						new InternalLinkMatcher({
+							target: internalLinkTarget,
+							resolveLink: (link, file) =>
+								this.app.metadataCache.getFirstLinkpathDest(
+									getLinkpath(link),
+									file.path
+								)?.path ?? null,
+						}),
+					]
+				: []),
 			...(() => {
 				const tagMatchers: Matcher[] = [];
 				if (excludeTags.length > 0) {

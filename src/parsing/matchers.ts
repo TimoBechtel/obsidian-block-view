@@ -1,18 +1,20 @@
-import type { CachedMetadata, SectionCache } from "obsidian";
+import type { CachedMetadata, SectionCache, TFile } from "obsidian";
 
-export type MatchContext = {
+export type FileMatchContext = {
+	file: TFile;
+	cache: CachedMetadata;
+};
+
+export type MatchContext = FileMatchContext & {
 	range: {
 		start: number;
 		end: number;
 	};
 	sectionType: SectionCache["type"];
 	lines: string[];
-	cache: CachedMetadata;
 };
 
-export type MetadataMatchContext = {
-	cache: CachedMetadata;
-};
+export type MetadataMatchContext = FileMatchContext;
 
 export type ContentMatchContext = {
 	content: string;
@@ -128,6 +130,47 @@ export class TextMatcher implements Matcher {
 		}
 
 		return !content.toLowerCase().includes(this.normalizedPattern);
+	}
+}
+
+export type InternalLinkTarget =
+	{ type: "any" } | { type: "file"; path: string } | { type: "none" };
+
+export class InternalLinkMatcher implements Matcher {
+	constructor(
+		private options: {
+			target: InternalLinkTarget;
+			resolveLink: (link: string, file: TFile) => string | null;
+		}
+	) {}
+
+	matches({ cache, file, range }: MatchContext): boolean {
+		return (
+			cache.links?.some(
+				(link) =>
+					link.position.start.line >= range.start &&
+					link.position.start.line <= range.end &&
+					this.matchesTarget(link.link, file)
+			) ?? false
+		);
+	}
+
+	canSkipByMetadata({ cache, file }: MetadataMatchContext): boolean {
+		return !(
+			cache.links?.some((link) => this.matchesTarget(link.link, file)) ??
+			false
+		);
+	}
+
+	canSkipByContent(): boolean {
+		return false;
+	}
+
+	private matchesTarget(link: string, file: TFile): boolean {
+		const { target, resolveLink } = this.options;
+		if (target.type === "any") return true;
+		if (target.type === "none") return false;
+		return resolveLink(link, file) === target.path;
 	}
 }
 

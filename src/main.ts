@@ -72,6 +72,34 @@ export default class BlockViewPlugin extends Plugin {
 					default: false,
 				},
 				{
+					type: "toggle",
+					displayName: "Internal links",
+					key: "filterLinks",
+					default: false,
+				},
+				{
+					type: "dropdown",
+					displayName: "Show",
+					key: "linkFilterType",
+					default: "internal",
+					options: {
+						internal: "Any internal link",
+						currentFile: "Links to active file",
+						file: "Links to selected file",
+					} satisfies Record<string, string>,
+					shouldHide: () => !config.get("filterLinks"),
+				},
+				{
+					type: "file",
+					displayName: "File",
+					key: "linkFilterFile",
+					default: "",
+					placeholder: "Select a file",
+					shouldHide: () =>
+						!config.get("filterLinks") ||
+						config.get("linkFilterType") !== "file",
+				},
+				{
 					type: "multitext",
 					displayName: "Tags",
 					key: "tagFilter",

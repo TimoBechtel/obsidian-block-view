@@ -1,9 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import type { CachedMetadata, SectionCache } from "obsidian";
+import type { CachedMetadata, SectionCache, TFile } from "obsidian";
+type TestFile = TFile;
 import {
 	AndMatcher,
 	CodeBlockMatcher,
 	ImageMatcher,
+	InternalLinkMatcher,
 	NotMatcher,
 	TagMatcher,
 	TaskMatcher,
@@ -18,6 +20,8 @@ function createContext(
 		tags?: Array<{ tag: string; line?: number }>;
 		tasks?: Array<{ status: " " | "x" | "X"; line?: number }>;
 		embeds?: Array<{ link: string; original: string; line?: number }>;
+		links?: Array<{ link: string; original?: string; line?: number }>;
+		file?: TFile;
 	} = {}
 ): MatchContext {
 	const lines = content.split("\n");
@@ -65,6 +69,23 @@ function createContext(
 		);
 	}
 
+	if (options.links) {
+		cache.links = options.links.map(
+			({ link, original = `[[${link}]]`, line = startLine }) => ({
+				link,
+				original,
+				position: {
+					start: { line, col: 0, offset: 0 },
+					end: {
+						line,
+						col: original.length,
+						offset: original.length,
+					},
+				},
+			})
+		);
+	}
+
 	return {
 		range: {
 			start: startLine,
@@ -73,6 +94,7 @@ function createContext(
 		sectionType: options.section ?? "paragraph",
 		lines,
 		cache,
+		file: options.file ?? ({ path: "Source.md" } as TestFile),
 	};
 }
 
@@ -400,6 +422,74 @@ describe("TextMatcher", () => {
 		expect(matcher.matches(createContext("meeting notes"))).toBe(true);
 		expect(matcher.matches(createContext("MEETING NOTES"))).toBe(true);
 		expect(matcher.matches(createContext("notes"))).toBe(false);
+	});
+});
+
+describe("InternalLinkMatcher", () => {
+	test("matches blocks containing any internal link", () => {
+		const matcher = new InternalLinkMatcher({
+			target: { type: "any" },
+			resolveLink: () => null,
+		});
+		expect(
+			matcher.matches(
+				createContext("See [[Reactor]]", {
+					links: [{ link: "Reactor" }],
+				})
+			)
+		).toBe(true);
+		expect(matcher.matches(createContext("No links here"))).toBe(false);
+		expect(
+			matcher.matches(
+				createContext("No links in this block", {
+					links: [{ link: "Reactor", line: 1 }],
+				})
+			)
+		).toBe(false);
+	});
+
+	test("matches links that resolve to the selected file", () => {
+		const matcher = new InternalLinkMatcher({
+			target: { type: "file", path: "Projects/Reactor.md" },
+			resolveLink: (link, file) =>
+				link === "Reactor#Cooling" && file.path === "Meetings/Weekly.md"
+					? "Projects/Reactor.md"
+					: null,
+		});
+		const context = createContext(
+			"Review [[Reactor#Cooling|the reactor]]",
+			{
+				links: [
+					{
+						link: "Reactor#Cooling",
+						original: "[[Reactor#Cooling|the reactor]]",
+					},
+				],
+				file: { path: "Meetings/Weekly.md" } as TestFile,
+			}
+		);
+
+		expect(matcher.matches(context)).toBe(true);
+		expect(
+			matcher.canSkipByMetadata({
+				cache: context.cache,
+				file: context.file,
+			})
+		).toBe(false);
+	});
+
+	test("matches nothing without a target file", () => {
+		const matcher = new InternalLinkMatcher({
+			target: { type: "none" },
+			resolveLink: () => "Projects/Reactor.md",
+		});
+		expect(
+			matcher.matches(
+				createContext("See [[Reactor]]", {
+					links: [{ link: "Reactor" }],
+				})
+			)
+		).toBe(false);
 	});
 });
 

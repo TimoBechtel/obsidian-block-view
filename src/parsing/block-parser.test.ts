@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
-import type { CachedMetadata } from "obsidian";
+import type { CachedMetadata, TFile } from "obsidian";
+type TestFile = TFile;
 import { parseBlocks } from "./block-parser";
 import { AndMatcher, NotMatcher, TagMatcher, TaskMatcher } from "./matchers";
 
@@ -8,11 +9,13 @@ const exampleNote = readFileSync("test/example-note.md", "utf-8");
 const exampleMetadata = JSON.parse(
 	readFileSync("test/example-note-metadata.json", "utf-8")
 ) as CachedMetadata;
+const exampleFile = { path: "Example.md" } as TestFile;
+const exampleContext = { metadata: exampleMetadata, file: exampleFile };
 
 describe("extractBlocks", () => {
 	test("extracts paragraph blocks with tags", () => {
 		const matcher = new TagMatcher(["#log"]);
-		const blocks = parseBlocks(exampleNote, exampleMetadata, matcher);
+		const blocks = parseBlocks(exampleNote, exampleContext, matcher);
 
 		const paragraphBlock = blocks.find((block) =>
 			block.content.includes("This paragraph has a #log tag")
@@ -26,7 +29,7 @@ describe("extractBlocks", () => {
 
 	test("extracts heading blocks with tags", () => {
 		const matcher = new TagMatcher(["#log"]);
-		const blocks = parseBlocks(exampleNote, exampleMetadata, matcher);
+		const blocks = parseBlocks(exampleNote, exampleContext, matcher);
 
 		const headingBlock = blocks.find((block) =>
 			block.content.startsWith("## A heading with #log")
@@ -40,7 +43,7 @@ describe("extractBlocks", () => {
 
 	test("extracts list item blocks with tags", () => {
 		const matcher = new TagMatcher(["#log"]);
-		const blocks = parseBlocks(exampleNote, exampleMetadata, matcher);
+		const blocks = parseBlocks(exampleNote, exampleContext, matcher);
 
 		const listBlock = blocks.find((block) =>
 			block.content.includes("- List item with tag")
@@ -72,7 +75,7 @@ describe("extractBlocks", () => {
 			new TaskMatcher("any"),
 			new NotMatcher(new TagMatcher(["#log"])),
 		]);
-		const blocks = parseBlocks(exampleNote, exampleMetadata, matcher);
+		const blocks = parseBlocks(exampleNote, exampleContext, matcher);
 
 		// includes all task items but not the ones with #log
 		expect(
@@ -90,7 +93,7 @@ describe("extractBlocks", () => {
 
 	test("extracts numbered list blocks with tags", () => {
 		const matcher = new TagMatcher(["#log"]);
-		const blocks = parseBlocks(exampleNote, exampleMetadata, matcher);
+		const blocks = parseBlocks(exampleNote, exampleContext, matcher);
 
 		const numberedBlock = blocks.find((block) =>
 			block.content.includes("2. Numbered with #log")
@@ -104,7 +107,7 @@ describe("extractBlocks", () => {
 
 	test("extracts continuation paragraphs in list blocks", () => {
 		const matcher = new TagMatcher(["#log"]);
-		const blocks = parseBlocks(exampleNote, exampleMetadata, matcher);
+		const blocks = parseBlocks(exampleNote, exampleContext, matcher);
 
 		const continuationBlock = blocks.find((block) =>
 			block.content.includes("- Another #log item")
@@ -122,14 +125,14 @@ describe("extractBlocks", () => {
 
 	test("does not extract blocks without matching tags", () => {
 		const matcher = new TagMatcher(["#nonexistent"]);
-		const blocks = parseBlocks(exampleNote, exampleMetadata, matcher);
+		const blocks = parseBlocks(exampleNote, exampleContext, matcher);
 
 		expect(blocks.length).toBe(0);
 	});
 
 	test("returns correct line numbers", () => {
 		const matcher = new TagMatcher(["#log"]);
-		const blocks = parseBlocks(exampleNote, exampleMetadata, matcher);
+		const blocks = parseBlocks(exampleNote, exampleContext, matcher);
 
 		const paragraphBlock = blocks.find((block) =>
 			block.content.includes("This paragraph has a #log tag")
@@ -140,7 +143,7 @@ describe("extractBlocks", () => {
 
 	test("extracts blocks that start with a tag", () => {
 		const matcher = new TagMatcher(["#log"]);
-		const blocks = parseBlocks(exampleNote, exampleMetadata, matcher);
+		const blocks = parseBlocks(exampleNote, exampleContext, matcher);
 
 		const tagStartBlock = blocks.find((block) =>
 			block.content.includes("#log this paragraph starts with a tag")
@@ -154,7 +157,7 @@ describe("extractBlocks", () => {
 
 	test("skips code blocks with tags inside code", () => {
 		const matcher = new TagMatcher(["#log"]);
-		const blocks = parseBlocks(exampleNote, exampleMetadata, matcher);
+		const blocks = parseBlocks(exampleNote, exampleContext, matcher);
 
 		const jsCodeBlock = blocks.find(
 			(block) =>
@@ -166,7 +169,7 @@ describe("extractBlocks", () => {
 
 	test("skips inline code with tags", () => {
 		const matcher = new TagMatcher(["#log"]);
-		const blocks = parseBlocks(exampleNote, exampleMetadata, matcher);
+		const blocks = parseBlocks(exampleNote, exampleContext, matcher);
 
 		const inlineCodeParagraph = blocks.find((block) =>
 			block.content.includes("`some code #log`")
@@ -176,7 +179,7 @@ describe("extractBlocks", () => {
 
 	test("extracts blockquotes with tags", () => {
 		const matcher = new TagMatcher(["#log"]);
-		const blocks = parseBlocks(exampleNote, exampleMetadata, matcher);
+		const blocks = parseBlocks(exampleNote, exampleContext, matcher);
 
 		const blockquote = blocks.find((block) =>
 			block.content.includes("> This is a quote with #log tag")
@@ -198,7 +201,7 @@ describe("extractBlocks", () => {
 
 	test("extracts tables with tags when filtering rows", () => {
 		const matcher = new TagMatcher(["#log"]);
-		const blocks = parseBlocks(exampleNote, exampleMetadata, matcher, {
+		const blocks = parseBlocks(exampleNote, exampleContext, matcher, {
 			filterTableRows: true,
 		});
 
@@ -234,7 +237,7 @@ describe("extractBlocks", () => {
 
 	test("extracts full tables by default", () => {
 		const matcher = new TagMatcher(["#log"]);
-		const blocks = parseBlocks(exampleNote, exampleMetadata, matcher);
+		const blocks = parseBlocks(exampleNote, exampleContext, matcher);
 
 		const tableBlock = blocks.find((block) =>
 			block.content.includes("| Data #log |")
@@ -247,7 +250,7 @@ describe("extractBlocks", () => {
 
 	test("does not extract duplicate blocks when heading matches and content inside also matches", () => {
 		const matcher = new TagMatcher(["#log"]);
-		const blocks = parseBlocks(exampleNote, exampleMetadata, matcher);
+		const blocks = parseBlocks(exampleNote, exampleContext, matcher);
 
 		const headingBlock = blocks.find((block) =>
 			block.content.startsWith("## A heading with #log")
@@ -265,7 +268,7 @@ describe("extractBlocks", () => {
 
 	test("includes block immediately after tagged line", () => {
 		const matcher = new TagMatcher(["#adjacent"]);
-		const blocks = parseBlocks(exampleNote, exampleMetadata, matcher);
+		const blocks = parseBlocks(exampleNote, exampleContext, matcher);
 
 		const afterBlock = blocks.find(
 			(block) =>
@@ -281,7 +284,7 @@ describe("extractBlocks", () => {
 
 	test("does not include sections separated by empty line", () => {
 		const matcher = new TagMatcher(["#adjacent"]);
-		const blocks = parseBlocks(exampleNote, exampleMetadata, matcher);
+		const blocks = parseBlocks(exampleNote, exampleContext, matcher);
 
 		const separatedBlock = blocks.find((block) =>
 			block.content.includes("func separated()")

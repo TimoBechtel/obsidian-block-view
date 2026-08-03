@@ -1,4 +1,4 @@
-import type { CachedMetadata, SectionCache } from "obsidian";
+import type { CachedMetadata, SectionCache, TFile } from "obsidian";
 import type { Matcher } from "./matchers";
 
 export type ParsedBlock = {
@@ -12,6 +12,7 @@ type ExtractOptions = {
 	lines: string[];
 	matcher: Matcher;
 	cache: CachedMetadata;
+	file: TFile;
 };
 
 abstract class SectionBlockParser {
@@ -26,7 +27,7 @@ class ListBlockParser extends SectionBlockParser {
 		return section.type === "list";
 	}
 
-	extract({ startIndex, lines, matcher, cache }: ExtractOptions): {
+	extract({ startIndex, lines, matcher, cache, file }: ExtractOptions): {
 		blocks: ParsedBlock[];
 		lastSectionIndex: number;
 	} | null {
@@ -69,6 +70,7 @@ class ListBlockParser extends SectionBlockParser {
 					sectionType: section.type,
 					lines,
 					cache,
+					file,
 				})
 			) {
 				blocks.push({
@@ -90,7 +92,7 @@ class HeadingBlockParser extends SectionBlockParser {
 		return section.type === "heading";
 	}
 
-	extract({ startIndex, lines, matcher, cache }: ExtractOptions): {
+	extract({ startIndex, lines, matcher, cache, file }: ExtractOptions): {
 		blocks: ParsedBlock[];
 		lastSectionIndex: number;
 	} | null {
@@ -112,6 +114,7 @@ class HeadingBlockParser extends SectionBlockParser {
 				sectionType: section.type,
 				lines,
 				cache,
+				file,
 			})
 		) {
 			return null;
@@ -162,7 +165,7 @@ class CodeBlockParser extends SectionBlockParser {
 		return section.type === "code";
 	}
 
-	extract({ startIndex, lines, matcher, cache }: ExtractOptions): {
+	extract({ startIndex, lines, matcher, cache, file }: ExtractOptions): {
 		blocks: ParsedBlock[];
 		lastSectionIndex: number;
 	} | null {
@@ -181,6 +184,7 @@ class CodeBlockParser extends SectionBlockParser {
 				sectionType: section.type,
 				lines,
 				cache,
+				file,
 			})
 		) {
 			return null;
@@ -209,7 +213,7 @@ class TableBlockParser extends SectionBlockParser {
 		return section.type === "table";
 	}
 
-	extract({ startIndex, lines, matcher, cache }: ExtractOptions): {
+	extract({ startIndex, lines, matcher, cache, file }: ExtractOptions): {
 		blocks: ParsedBlock[];
 		lastSectionIndex: number;
 	} | null {
@@ -240,6 +244,7 @@ class TableBlockParser extends SectionBlockParser {
 				sectionType: section.type,
 				lines,
 				cache,
+				file,
 			})
 		) {
 			return {
@@ -268,6 +273,7 @@ class TableBlockParser extends SectionBlockParser {
 					sectionType: section.type,
 					lines,
 					cache,
+					file,
 				})
 			) {
 				matchedTableRows.push(dataLine);
@@ -297,7 +303,7 @@ class DefaultSectionParser extends SectionBlockParser {
 		return true;
 	}
 
-	extract({ startIndex, lines, matcher, cache }: ExtractOptions): {
+	extract({ startIndex, lines, matcher, cache, file }: ExtractOptions): {
 		blocks: ParsedBlock[];
 		lastSectionIndex: number;
 	} | null {
@@ -316,6 +322,7 @@ class DefaultSectionParser extends SectionBlockParser {
 				sectionType: section.type,
 				lines,
 				cache,
+				file,
 			})
 		) {
 			return null;
@@ -356,7 +363,7 @@ type ParseOptions = {
 
 export function parseBlocks(
 	content: string,
-	metadata: CachedMetadata,
+	{ metadata, file }: { metadata: CachedMetadata; file: TFile },
 	matcher: Matcher,
 	options?: ParseOptions
 ): ParsedBlock[] {
@@ -390,6 +397,7 @@ export function parseBlocks(
 			lines,
 			matcher,
 			cache: metadata,
+			file,
 		});
 		if (result) {
 			blocks.push(...result.blocks);
