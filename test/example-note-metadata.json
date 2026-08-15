@@ -239,6 +239,21 @@
 				}
 			},
 			"tag": "#adjacent"
+		},
+		{
+			"position": {
+				"start": {
+					"line": 127,
+					"col": 21,
+					"offset": 0
+				},
+				"end": {
+					"line": 127,
+					"col": 25,
+					"offset": 0
+				}
+			},
+			"tag": "#log"
 		}
 	],
 	"headings": [
@@ -400,6 +415,22 @@
 				}
 			},
 			"heading": "Adjacent Sections",
+			"level": 2
+		},
+		{
+			"position": {
+				"start": {
+					"line": 127,
+					"col": 0,
+					"offset": 0
+				},
+				"end": {
+					"line": 127,
+					"col": 25,
+					"offset": 0
+				}
+			},
+			"heading": "Separator heading #log",
 			"level": 2
 		}
 	],
@@ -956,6 +987,66 @@
 					"line": 125,
 					"col": 23,
 					"offset": 2038
+				}
+			}
+		},
+		{
+			"type": "heading",
+			"position": {
+				"start": {
+					"line": 127,
+					"col": 0,
+					"offset": 0
+				},
+				"end": {
+					"line": 127,
+					"col": 25,
+					"offset": 0
+				}
+			}
+		},
+		{
+			"type": "paragraph",
+			"position": {
+				"start": {
+					"line": 128,
+					"col": 0,
+					"offset": 0
+				},
+				"end": {
+					"line": 128,
+					"col": 22,
+					"offset": 0
+				}
+			}
+		},
+		{
+			"type": "thematicBreak",
+			"position": {
+				"start": {
+					"line": 129,
+					"col": 0,
+					"offset": 0
+				},
+				"end": {
+					"line": 129,
+					"col": 3,
+					"offset": 0
+				}
+			}
+		},
+		{
+			"type": "paragraph",
+			"position": {
+				"start": {
+					"line": 130,
+					"col": 0,
+					"offset": 0
+				},
+				"end": {
+					"line": 130,
+					"col": 28,
+					"offset": 0
 				}
 			}
 		}
