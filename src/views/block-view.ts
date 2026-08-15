@@ -43,6 +43,7 @@ export class BlockView extends BasesView implements HoverParent {
 	readonly type = BlockViewType;
 	private statusBarEl: HTMLElement;
 	private containerEl: HTMLElement;
+	private controller: QueryController;
 	private intersectionObserver: IntersectionObserver;
 
 	private debouncedRender = debounceLeading(() => {
@@ -65,7 +66,7 @@ export class BlockView extends BasesView implements HoverParent {
 		super(controller);
 		this.statusBarEl = parentEl.createDiv("block-view-statusbar");
 		this.containerEl = parentEl.createDiv("block-view-container");
-
+		this.controller = controller;
 		/**
 		 * Custom view does not automatically add click handlers, so we need to add them manually.
 		 */
@@ -551,7 +552,17 @@ export class BlockView extends BasesView implements HoverParent {
 					? { type: "file", path }
 					: { type: "none" };
 			} else {
-				const path = this.app.workspace.getActiveFile()?.path;
+				// use current file to match bases "this" behavior
+				// note: this uses an undocumented obsidian api and might break in the future
+				// also other extensions reported that this value could become stale. 
+				// if this causes issues in the future, we might try evaluating a hidden formula instead
+				const controllerFile = (this.controller as { currentFile?: TFile }).currentFile;
+				let path: string | undefined;
+				if (controllerFile && controllerFile.extension !== "base") {
+				    path = controllerFile.path;
+				} else {
+				    path = this.app.workspace.getActiveFile()?.path;
+				}
 				internalLinkTarget = path
 					? { type: "file", path }
 					: { type: "none" };

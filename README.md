@@ -171,7 +171,7 @@ You can configure these settings via the view options panel in the Bases view.
 | **Tables**             | Toggle to include Markdown tables.                                                                                                      |
 | **Images**             | Toggle to include images.                                                                                                               |
 | **Links**              | Toggle to include blocks containing links.                                                                                              |
-| **Show**               | If links are enabled, choose `Any internal link`, `Links to active file`, or `Links to selected file`.                                     |
+| **Show**               | If links are enabled, choose `Any internal link`, `Links to current file`, or `Links to selected file`.                                     |
 | **Tags**               | Multi-select list of tags to filter by. Use `-` prefix to exclude (e.g., `#work`, `-#archived`). Supports nested tags.                  |
 | **Text pattern**       | Match any line in a block by plain text or regex. Plain text matches the start of a line. For regex, use something like `/^## ToDos/i`. |
 | **Invert text filter** | Include blocks whose lines do not match the text pattern.                                                                               |

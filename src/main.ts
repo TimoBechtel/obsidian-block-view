@@ -84,7 +84,7 @@ export default class BlockViewPlugin extends Plugin {
 					default: "internal",
 					options: {
 						internal: "Any internal link",
-						currentFile: "Links to active file",
+						currentFile: "Links to current file",
 						file: "Links to selected file",
 					} satisfies Record<string, string>,
 					shouldHide: () => !config.get("filterLinks"),
