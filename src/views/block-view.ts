@@ -552,6 +552,10 @@ export class BlockView extends BasesView implements HoverParent {
 					? { type: "file", path }
 					: { type: "none" };
 			} else {
+				// use current file to match bases "this" behavior
+				// note: this uses an undocumented obsidian api and might break in the future
+				// also other extensions reported that this value could become stale. 
+				// if this causes issues in the future, we might try evaluating a hidden formula instead
 				const controllerFile = (this.controller as { currentFile?: TFile }).currentFile;
 				let path: string | undefined;
 				if (controllerFile && controllerFile.extension !== "base") {
