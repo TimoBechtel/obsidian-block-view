@@ -172,13 +172,16 @@ You can configure these settings via the view options panel in the Bases view.
 | **Images**             | Toggle to include images.                                                                                                               |
 | **Links**              | Toggle to include blocks containing links.                                                                                              |
 | **Show**               | If links are enabled, choose `Any internal link`, `Links to current file`, or `Links to selected file`.                                     |
-| **Tags**               | Multi-select list of tags to filter by. Use `-` prefix to exclude (e.g., `#work`, `-#archived`). Supports nested tags.                  |
+| **Tags**               | Multi-select list of tags to filter by, with suggestions from your vault. Use `-` prefix to exclude (e.g., `#work`, `-#archived`). Supports nested tags.                  |
 | **Text pattern**       | Match any line in a block by plain text or regex. Plain text matches the start of a line. For regex, use something like `/^## ToDos/i`. |
 | **Invert text filter** | Include blocks whose lines do not match the text pattern.                                                                               |
 | **Include if**         | `Any filter matches` or `All filters match`.                                                                                            |
 | **Display Options**    | Show files without matches, include non-Markdown files, only include matching table rows, and cap max blocks per file.                  |
 
 > Text pattern example: `meeting` matches `Meeting notes`, but not `Notes from the meeting`. Use regex like `/meeting/i` to match anywhere in a line.
+
+> [!NOTE]
+> Tag suggestions from your vault are experimental and may stop appearing after an Obsidian update.
 
 ## Style Settings
 

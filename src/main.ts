@@ -1,10 +1,17 @@
 import { Plugin, type BasesAllOptions } from "obsidian";
-import { BlockView, BlockViewType } from "./views/block-view";
+import { registerTagSuggestions } from "./ui/bases-tag-suggestions";
+import {
+	BlockView,
+	BlockViewType,
+	blockLayoutName,
+	tagsFieldName,
+} from "./views/block-view";
 
 export default class BlockViewPlugin extends Plugin {
 	onload() {
+		registerTagSuggestions(this);
 		this.registerBasesView(BlockViewType, {
-			name: "Blocks",
+			name: blockLayoutName,
 			icon: "lucide-blocks",
 			factory: (controller, containerEl) => {
 				return new BlockView(controller, containerEl);
@@ -101,7 +108,7 @@ export default class BlockViewPlugin extends Plugin {
 				},
 				{
 					type: "multitext",
-					displayName: "Tags",
+					displayName: tagsFieldName,
 					key: "tagFilter",
 					default: [],
 				},
