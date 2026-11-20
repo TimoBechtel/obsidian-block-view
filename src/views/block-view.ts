@@ -32,6 +32,8 @@ import { renderBlockViewEmptyState } from "./block-view-empty-state";
 import { tryOpenObsidianImagePreview } from "./obsidian-image-preview";
 
 export const BlockViewType = "block-view" as const;
+export const blockLayoutName = "Blocks";
+export const tagsFieldName = "Tags";
 
 type BlockRenderInfo = {
 	file: TFile;
