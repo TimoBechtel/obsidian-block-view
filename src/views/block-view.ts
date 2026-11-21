@@ -62,7 +62,7 @@ export class BlockView extends BasesView implements HoverParent {
 
 	private savedScrollPosition: number | undefined;
 
-	hoverPopover: HoverPopover | null;
+	hoverPopover: HoverPopover | null = null;
 
 	constructor(controller: QueryController, parentEl: HTMLElement) {
 		super(controller);
@@ -304,8 +304,8 @@ export class BlockView extends BasesView implements HoverParent {
 	private handleContainerClick(evt: MouseEvent) {
 		if (evt.button !== 0 && evt.button !== 1) return;
 
-		const target = evt.target;
-		if (!(target instanceof HTMLElement)) return;
+		const target = evt.targetNode;
+		if (!target?.instanceOf(HTMLElement)) return;
 
 		if (
 			tryOpenObsidianImagePreview({
@@ -317,13 +317,13 @@ export class BlockView extends BasesView implements HoverParent {
 			return;
 		}
 		const internalLink = target.closest("a.internal-link");
-		if (internalLink instanceof HTMLAnchorElement) {
+		if (internalLink?.instanceOf(HTMLAnchorElement)) {
 			this.handleInternalLinkClick(evt, internalLink);
 			return;
 		}
 
 		const tagLink = target.closest("a.tag");
-		if (tagLink instanceof HTMLAnchorElement) {
+		if (tagLink?.instanceOf(HTMLAnchorElement)) {
 			this.handleTagClick(evt, tagLink);
 			return;
 		}
@@ -331,13 +331,13 @@ export class BlockView extends BasesView implements HoverParent {
 		const checkbox = target.closest(
 			'input[type="checkbox"].task-list-item-checkbox'
 		);
-		if (checkbox instanceof HTMLInputElement) {
+		if (checkbox?.instanceOf(HTMLInputElement)) {
 			this.handleCheckboxClick(evt, checkbox);
 			return;
 		}
 
 		const blockEl = target.closest(".block-view-block");
-		if (!(blockEl instanceof HTMLElement)) return;
+		if (!blockEl?.instanceOf(HTMLElement)) return;
 
 		// we make blocks clickable, but prevent clicks on links and other elements inside the block
 		if (target !== blockEl && isInteractiveTarget(target, blockEl)) {
@@ -345,7 +345,7 @@ export class BlockView extends BasesView implements HoverParent {
 		}
 
 		// prevent navigation when user selects text
-		if (hasTextSelection()) {
+		if (hasTextSelection(target.win)) {
 			return;
 		}
 
@@ -361,11 +361,11 @@ export class BlockView extends BasesView implements HoverParent {
 	}
 
 	private handleContainerMouseOver(evt: MouseEvent) {
-		const target = evt.target;
-		if (!(target instanceof HTMLElement)) return;
+		const target = evt.targetNode;
+		if (!target?.instanceOf(HTMLElement)) return;
 
 		const internalLink = target.closest("a.internal-link");
-		if (!(internalLink instanceof HTMLAnchorElement)) return;
+		if (!internalLink?.instanceOf(HTMLAnchorElement)) return;
 
 		const href =
 			internalLink.getAttribute("data-href") ||
@@ -373,10 +373,9 @@ export class BlockView extends BasesView implements HoverParent {
 		if (!href) return;
 
 		const fileEl = internalLink.closest(".block-view-file");
-		const sourcePath =
-			fileEl instanceof HTMLElement
-				? (fileEl.dataset.filePath ?? "")
-				: "";
+		const sourcePath = fileEl?.instanceOf(HTMLElement)
+			? (fileEl.dataset.filePath ?? "")
+			: "";
 
 		this.app.workspace.trigger("hover-link", {
 			event: evt,
@@ -399,10 +398,9 @@ export class BlockView extends BasesView implements HoverParent {
 		if (!href) return;
 
 		const fileEl = linkEl.closest(".block-view-file");
-		const sourcePath =
-			fileEl instanceof HTMLElement
-				? (fileEl.dataset.filePath ?? "")
-				: "";
+		const sourcePath = fileEl?.instanceOf(HTMLElement)
+			? (fileEl.dataset.filePath ?? "")
+			: "";
 		const modEvent = Keymap.isModEvent(evt);
 		void this.app.workspace.openLinkText(href, sourcePath, modEvent);
 	}
@@ -445,8 +443,9 @@ export class BlockView extends BasesView implements HoverParent {
 		evt.stopPropagation();
 
 		const fileEl = checkbox.closest(".block-view-file");
-		const filePath =
-			fileEl instanceof HTMLElement ? fileEl.dataset.filePath : undefined;
+		const filePath = fileEl?.instanceOf(HTMLElement)
+			? fileEl.dataset.filePath
+			: undefined;
 		if (!filePath) return;
 
 		const abstractFile = this.app.vault.getAbstractFileByPath(filePath);
