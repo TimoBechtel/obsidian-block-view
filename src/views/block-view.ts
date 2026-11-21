@@ -62,7 +62,7 @@ export class BlockView extends BasesView implements HoverParent {
 
 	private savedScrollPosition: number | undefined;
 
-	hoverPopover: HoverPopover | null;
+	hoverPopover: HoverPopover | null = null;
 
 	constructor(controller: QueryController, parentEl: HTMLElement) {
 		super(controller);
