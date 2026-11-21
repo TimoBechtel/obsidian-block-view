@@ -25,13 +25,9 @@ const interactiveAriaRoles = new Set([
  * Checks if the target is an interactive element or a child of an interactive element within the boundary.
  */
 export function isInteractiveTarget(
-	target: EventTarget | null,
+	target: HTMLElement,
 	boundary: HTMLElement
 ): boolean {
-	if (!(target instanceof HTMLElement)) {
-		return false;
-	}
-
 	let current: HTMLElement | null = target;
 	while (current && current !== boundary) {
 		if (current.isContentEditable) {
@@ -56,8 +52,8 @@ export function isInteractiveTarget(
 	return false;
 }
 
-export function hasTextSelection(): boolean {
-	const selection = window.getSelection();
+export function hasTextSelection(win: Window): boolean {
+	const selection = win.getSelection();
 	if (!selection) {
 		return false;
 	}

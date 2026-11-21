@@ -130,7 +130,7 @@ export function registerTagSuggestions(plugin: Plugin) {
 			true
 		);
 	}
-	listen(document);
+	listen(activeDocument);
 	plugin.app.workspace.iterateAllLeaves((leaf) =>
 		listen(leaf.view.containerEl.doc)
 	);
